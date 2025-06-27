@@ -71,14 +71,14 @@ def load_emergency_data(file_path):
                 except Exception as e:
                     print(f"警告: 处理行 {row} 时发生错误: {e}, 跳过此行")
         
-        print(f"Successfully loaded {len(emergencies)} emergency records")
+        print(f"成功加载了 {len(emergencies)} 条紧急情况记录")
         return emergencies
     
     except FileNotFoundError:
-        print(f"Error: File '{file_path}' does not exist")
+        print(f"错误: 文件 '{file_path}' 不存在")
         return []
     except Exception as e:
-        print(f"Error: Exception occurred while loading data: {e}")
+        print(f"错误: 加载数据时发生异常: {e}")
         return []
 
 def initialize_priority_queues(emergencies, linked_list_queue, binary_tree_queue, heap_queue):
@@ -96,4 +96,4 @@ def initialize_priority_queues(emergencies, linked_list_queue, binary_tree_queue
         binary_tree_queue.enqueue(emergency)
         heap_queue.enqueue(emergency)
     
-    print(f"Loaded {len(emergencies)} emergency records into three priority queues") 
+    print(f"已将 {len(emergencies)} 条紧急情况记录加载到三个优先队列中") 
