@@ -102,5 +102,29 @@ class TestDataLoader(unittest.TestCase):
         self.assertEqual(heap_queue.dequeue().emergency_id, 3)  # Police, severity 4
         self.assertEqual(heap_queue.dequeue().emergency_id, 1)  # Fire, severity 5
 
+    def test_load_data_file_not_found(self):
+        """测试加载不存在的文件"""
+        with self.assertRaises(FileNotFoundError):
+            load_emergency_data("non_existent_file.csv")
+
+    def test_load_data_malformed_csv(self):
+        """测试加载格式错误的CSV文件"""
+        # 创建一个包含错误行的临时文件
+        with tempfile.NamedTemporaryFile(delete=False, mode='w', suffix='.csv', encoding='utf-8') as temp_file:
+            temp_file.write("emergency_id,type,severity,location,coordinate_x,coordinate_y\n")
+            temp_file.write("1,Fire,5,Downtown,35.2,67.8\n")
+            temp_file.write("2,Medical,invalid,Suburbs,78.4,23.1\n")  # 错误的严重性
+            temp_file.write("3,Police,4,City Center,45.6,52.3\n")
+            temp_file_path = temp_file.name
+
+        emergencies = load_emergency_data(temp_file_path)
+        
+        # 验证只加载了有效的行
+        self.assertEqual(len(emergencies), 2)
+        self.assertEqual(emergencies[0].emergency_id, 1)
+        self.assertEqual(emergencies[1].emergency_id, 3)
+
+        os.unlink(temp_file_path)
+
 if __name__ == '__main__':
     unittest.main() 

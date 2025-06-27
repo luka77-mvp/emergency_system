@@ -11,7 +11,7 @@ from emergency_response.data_structures.linked_list import LinkedListPriorityQue
 from emergency_response.data_structures.binary_tree import BinaryTreePriorityQueue
 from emergency_response.data_structures.heap import HeapPriorityQueue
 from emergency_response.utils.data_loader import load_emergency_data
-from emergency_response.utils.performance_analyzer import compare_performance
+from emergency_response.utils.performance_analyzer import PerformanceAnalyzer
 
 from .interface import EmergencyResponseGUI
 from .knn_visualization import run_knn_gui
@@ -191,29 +191,21 @@ class MainApplication:
         # 创建新窗口
         management_window = tk.Toplevel(self.root)
         
-        # 创建应急管理GUI并传递队列中的当前紧急情况
-        emergency_gui = EmergencyResponseGUI(management_window)
+        # 创建应急管理GUI并传递主应用的队列实例
+        # 这样可以确保两个窗口操作的是同一份数据
+        emergency_gui = EmergencyResponseGUI(
+            management_window,
+            self.linked_list_queue,
+            self.binary_tree_queue,
+            self.heap_queue
+        )
         
-        # 如果主界面队列中有数据，则将其传递给应急管理界面
-        if not self.current_queue.is_empty():
-            # 从当前队列中获取所有紧急情况
-            emergencies = list(self.current_queue)
-            
-            # 清除EmergencyResponseGUI中的队列
-            emergency_gui._clear_queue()
-            
-            # 将紧急情况添加到EmergencyResponseGUI的队列中
-            for emergency in emergencies:
-                emergency_gui.linked_list_queue.enqueue(emergency)
-                emergency_gui.binary_tree_queue.enqueue(emergency)
-                emergency_gui.heap_queue.enqueue(emergency)
-            
-            # 设置当前队列类型以匹配主界面
-            emergency_gui.current_queue_type.set(self.current_queue_type.get())
-            emergency_gui._on_queue_type_changed()
-            
-            # 更新显示
-            emergency_gui._update_queue_display()
+        # 设置管理界面的当前队列类型以匹配主界面
+        emergency_gui.current_queue_type.set(self.current_queue_type.get())
+        emergency_gui._on_queue_type_changed()
+        
+        # 更新显示
+        emergency_gui._update_queue_display()
         
         # 更新状态
         self.status_var.set("Emergency management interface opened")
@@ -389,12 +381,15 @@ class MainApplication:
         
         try:
             # 使用当前队列实例创建分析器
-            analyzer = compare_performance(
-                self.linked_list_queue,
-                self.binary_tree_queue,
-                self.heap_queue,
-                test_sizes=data_sizes
-            )
+            analyzer = PerformanceAnalyzer()
+            
+            # 根据选择的操作运行相应的性能测试
+            if operation == "enqueue":
+                analyzer.measure_enqueue_performance(data_sizes)
+            elif operation == "dequeue":
+                analyzer.measure_dequeue_performance(data_sizes)
+            elif operation == "search":
+                analyzer.measure_search_performance(data_sizes)
             
             # 直接使用chart_frame的canvas属性
             if hasattr(chart_frame, 'canvas'):

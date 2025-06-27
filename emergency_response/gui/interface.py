@@ -15,34 +15,37 @@ from ..utils.data_loader import load_emergency_data, initialize_priority_queues
 # 导入性能分析工具
 from ..utils.performance_analyzer import compare_performance
 # 导入自定义对话框
-from .custom_dialogs import askinteger
+from .custom_dialogs import AddEmergencyDialog
 from .statistics import run_statistics_gui
 
 class EmergencyResponseGUI:
     """应急响应管理系统的图形用户界面"""
     
-    def __init__(self, root):
+    def __init__(self, root, linked_list_queue, binary_tree_queue, heap_queue):
         """
         初始化GUI
         
         Parameters:
             root: tkinter根窗口
+            linked_list_queue: 共享的链表队列实例
+            binary_tree_queue: 共享的二叉树队列实例
+            heap_queue: 共享的堆队列实例
         """
         self.root = root
         self.root.title("Emergency Response Management System")
         self.root.geometry("1200x700")
         self.root.minsize(800, 600)
         
-        # 创建三种类型的优先级队列
-        self.linked_list_queue = LinkedListPriorityQueue()
-        self.binary_tree_queue = BinaryTreePriorityQueue()
-        self.heap_queue = HeapPriorityQueue()
+        # 使用从主应用传递过来的共享队列实例
+        self.linked_list_queue = linked_list_queue
+        self.binary_tree_queue = binary_tree_queue
+        self.heap_queue = heap_queue
         
         # 当前选择的队列类型
-        self.current_queue_type = tk.StringVar(value="linked_list")
+        self.current_queue_type = tk.StringVar(value="heap")
         
         # 当前选择的队列
-        self.current_queue = self.linked_list_queue
+        self.current_queue = self.heap_queue
         
         # 创建界面组件
         self._create_widgets()
@@ -119,7 +122,7 @@ class EmergencyResponseGUI:
         ttk.Button(
             buttons_frame, 
             text="Process Highest Priority",
-            command=self._dequeue_highest
+            command=self._process_emergency
         ).pack(side=tk.LEFT, padx=5)
         
         ttk.Button(
@@ -197,7 +200,7 @@ class EmergencyResponseGUI:
         self.queue_tree.bind("<Motion>", self._on_tree_hover)
         self.queue_tree.bind("<Button-1>", self._on_tree_click)
     
-    def _on_queue_type_changed(self):
+    def _on_queue_type_changed(self, event=None):
         """处理队列类型更改"""
         queue_type = self.current_queue_type.get()
         
@@ -223,131 +226,43 @@ class EmergencyResponseGUI:
             return "Heap"
     
     def _add_emergency(self):
-        """向队列中添加新的紧急情况"""
-        # 创建一个对话框窗口
-        dialog = tk.Toplevel(self.root)
-        dialog.title("Add Emergency")
-        dialog.geometry("400x300")
-        dialog.transient(self.root)  # 使对话框成为模态对话框
-        dialog.grab_set()
+        """添加新的紧急情况"""
+        dialog = AddEmergencyDialog(self.root)
         
-        # 创建表单字段
-        form_frame = ttk.Frame(dialog, padding="20")
-        form_frame.pack(fill=tk.BOTH, expand=True)
-        
-        # 紧急情况ID
-        ttk.Label(form_frame, text="Emergency ID:").grid(row=0, column=0, sticky=tk.W, pady=5)
-        id_var = tk.IntVar(value=random.randint(1000, 9999))
-        ttk.Entry(form_frame, textvariable=id_var, width=30).grid(row=0, column=1, pady=5)
-        
-        # 紧急情况类型
-        ttk.Label(form_frame, text="Emergency Type:").grid(row=1, column=0, sticky=tk.W, pady=5)
-        type_var = tk.StringVar(value="FIRE")
-        type_combo = ttk.Combobox(form_frame, textvariable=type_var, width=27)
-        type_combo['values'] = [e.name for e in EmergencyType]
-        type_combo.grid(row=1, column=1, pady=5)
-        
-        # 严重性级别
-        ttk.Label(form_frame, text="Severity Level (1-10):").grid(row=2, column=0, sticky=tk.W, pady=5)
-        severity_var = tk.IntVar(value=5)
-        ttk.Spinbox(form_frame, from_=1, to=10, textvariable=severity_var, width=28).grid(row=2, column=1, pady=5)
-        
-        # 添加严重性级别说明
-        severity_note = ttk.Label(form_frame, text="Note: Lower value = Higher priority (1 is most urgent)", font=("Arial", 9, "italic"))
-        severity_note.grid(row=2, column=2, sticky=tk.W, padx=5)
-        
-        # 位置
-        ttk.Label(form_frame, text="Location:").grid(row=3, column=0, sticky=tk.W, pady=5)
-        location_var = tk.StringVar()
-        ttk.Entry(form_frame, textvariable=location_var, width=30).grid(row=3, column=1, pady=5)
-        
-        # 坐标
-        ttk.Label(form_frame, text="Coordinates (x, y):").grid(row=4, column=0, sticky=tk.W, pady=5)
-        coord_frame = ttk.Frame(form_frame)
-        coord_frame.grid(row=4, column=1, pady=5)
-        
-        x_var = tk.DoubleVar(value=round(random.uniform(0, 100), 2))
-        y_var = tk.DoubleVar(value=round(random.uniform(0, 100), 2))
-        
-        ttk.Entry(coord_frame, textvariable=x_var, width=12).pack(side=tk.LEFT, padx=2)
-        ttk.Label(coord_frame, text=",").pack(side=tk.LEFT)
-        ttk.Entry(coord_frame, textvariable=y_var, width=12).pack(side=tk.LEFT, padx=2)
-        
-        # 提交按钮
-        def on_submit():
-            try:
-                # 从表单中获取值
-                emergency_id = id_var.get()
-                emergency_type_str = type_var.get()
-                severity_level = severity_var.get()
-                location = location_var.get()
-                x = x_var.get()
-                y = y_var.get()
-                
-                # 验证输入
-                if not location:
-                    messagebox.showerror("Error", "Please enter a location")
-                    return
-                
-                if not (1 <= severity_level <= 10):
-                    messagebox.showerror("Error", "Severity level must be between 1 and 10")
-                    return
-                
-                # 将字符串转换为EmergencyType枚举
-                emergency_type = EmergencyType[emergency_type_str]
-                
-                # 创建紧急情况对象
-                emergency = Emergency(
-                    emergency_id=emergency_id,
-                    emergency_type=emergency_type,
-                    severity_level=severity_level,
-                    location=location,
-                    coordinates=(x, y)
-                )
-                
-                # 添加到所有队列
-                self.linked_list_queue.enqueue(emergency)
-                self.binary_tree_queue.enqueue(emergency)
-                self.heap_queue.enqueue(emergency)
-                
-                # 更新显示
-                self._update_queue_display()
-                
-                # 关闭对话框
-                dialog.destroy()
-                
-                # 更新状态
-                self.status_var.set(f"Added emergency {emergency_id} to queue")
-                
-            except Exception as e:
-                messagebox.showerror("Error", str(e))
-        
-        ttk.Button(form_frame, text="Add Emergency", command=on_submit).grid(row=5, column=0, columnspan=2, pady=20)
+        if dialog.result:
+            new_emergency = dialog.result
+            
+            # 将新的紧急情况添加到所有三个队列中以保持同步
+            self.linked_list_queue.enqueue(new_emergency)
+            self.binary_tree_queue.enqueue(new_emergency)
+            self.heap_queue.enqueue(new_emergency)
+
+            # 更新显示
+            self._update_queue_display()
+            messagebox.showinfo("Success", "Emergency added successfully.")
     
-    def _dequeue_highest(self):
-        """移除并显示最高优先级的紧急情况"""
+    def _process_emergency(self):
+        """处理最高优先级的紧急情况"""
         if self.current_queue.is_empty():
-            messagebox.showinfo("Notice", "Queue is empty")
+            messagebox.showinfo("Notice", "The queue is empty.")
             return
         
-        # 获取最高优先级的紧急情况
-        emergency = self.current_queue.dequeue()
+        # 从所有三个队列中移除最高优先级的紧急情况
+        processed_ll = self.linked_list_queue.dequeue()
+        processed_bt = self.binary_tree_queue.dequeue()
+        processed_heap = self.heap_queue.dequeue()
         
-        # 显示信息
+        # 理论上，因为它们是同步的，所以它们应该是相同的
+        # 我们只显示其中一个的结果
         messagebox.showinfo(
-            "Highest Priority Emergency",
-            f"ID: {emergency.emergency_id}\n"
-            f"Type: {emergency.type.name}\n"
-            f"Severity: {emergency.severity_level} (Lower value = Higher priority)\n"
-            f"Location: {emergency.location}\n"
-            f"Coordinates: {emergency.coordinates}"
+            "Emergency Processed",
+            f"Processed Emergency:\n\n"
+            f"ID: {processed_heap.emergency_id}\n"
+            f"Type: {processed_heap.type.name}\n"
+            f"Severity: {processed_heap.severity_level}"
         )
         
-        # 更新显示
         self._update_queue_display()
-        
-        # 更新状态
-        self.status_var.set(f"Processed emergency {emergency.emergency_id}")
     
     def _search_emergency(self):
         """按ID搜索紧急情况"""
@@ -697,21 +612,17 @@ class EmergencyResponseGUI:
         ttk.Button(buttons_frame, text="Close", command=details_dialog.destroy).pack(side=tk.LEFT, padx=5)
 
     def _clear_queue(self):
-        """清除所有队列（内部方法）"""
-        # 清除链表队列
+        """清空所有队列中的所有紧急情况"""
+        # 清空所有三个队列以保持同步
         while not self.linked_list_queue.is_empty():
             self.linked_list_queue.dequeue()
-        
-        # 清除二叉树队列
         while not self.binary_tree_queue.is_empty():
             self.binary_tree_queue.dequeue()
-        
-        # 清除堆队列
         while not self.heap_queue.is_empty():
             self.heap_queue.dequeue()
-        
-        # 更新显示
+
         self._update_queue_display()
+        messagebox.showinfo("Success", "All queues have been cleared.")
 
 def run_gui():
     """运行应急响应管理系统GUI"""

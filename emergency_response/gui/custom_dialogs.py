@@ -3,6 +3,8 @@
 """
 import tkinter as tk
 from tkinter import ttk, messagebox
+import random
+from ..data_structures.emergency import Emergency, EmergencyType
 
 class CustomIntegerDialog:
     """始终置顶的自定义整数输入对话框"""
@@ -150,4 +152,111 @@ def askinteger(parent, title, prompt, initialvalue=None, minvalue=None, maxvalue
         用户输入的整数，如果用户取消则为None
     """
     dialog = CustomIntegerDialog(parent, title, prompt, initialvalue, minvalue, maxvalue)
-    return dialog.result 
+    return dialog.result
+
+class AddEmergencyDialog:
+    """用于添加新紧急情况的自定义对话框"""
+    
+    def __init__(self, parent):
+        """
+        初始化对话框
+        
+        参数:
+            parent: 父窗口
+        """
+        self.result = None
+        
+        # 创建对话框窗口
+        self.dialog = tk.Toplevel(parent)
+        self.dialog.title("Add Emergency")
+        self.dialog.geometry("400x300")
+        
+        # 设置为模态
+        self.dialog.transient(parent)
+        self.dialog.grab_set()
+        
+        # 创建表单字段
+        form_frame = ttk.Frame(self.dialog, padding="20")
+        form_frame.pack(fill=tk.BOTH, expand=True)
+        
+        # 紧急情况ID
+        ttk.Label(form_frame, text="Emergency ID:").grid(row=0, column=0, sticky=tk.W, pady=5)
+        self.id_var = tk.IntVar(value=random.randint(1000, 9999))
+        ttk.Entry(form_frame, textvariable=self.id_var, width=30).grid(row=0, column=1, pady=5)
+        
+        # 紧急情况类型
+        ttk.Label(form_frame, text="Emergency Type:").grid(row=1, column=0, sticky=tk.W, pady=5)
+        self.type_var = tk.StringVar(value="FIRE")
+        type_combo = ttk.Combobox(form_frame, textvariable=self.type_var, width=27)
+        type_combo['values'] = [e.name for e in EmergencyType]
+        type_combo.grid(row=1, column=1, pady=5)
+        
+        # 严重性级别
+        ttk.Label(form_frame, text="Severity Level (1-10):").grid(row=2, column=0, sticky=tk.W, pady=5)
+        self.severity_var = tk.IntVar(value=5)
+        ttk.Spinbox(form_frame, from_=1, to=10, textvariable=self.severity_var, width=28).grid(row=2, column=1, pady=5)
+        
+        # 添加严重性级别说明
+        severity_note = ttk.Label(form_frame, text="Note: 1 is most urgent", font=("Arial", 9, "italic"))
+        severity_note.grid(row=2, column=2, sticky=tk.W, padx=5)
+        
+        # 位置
+        ttk.Label(form_frame, text="Location:").grid(row=3, column=0, sticky=tk.W, pady=5)
+        self.location_var = tk.StringVar()
+        ttk.Entry(form_frame, textvariable=self.location_var, width=30).grid(row=3, column=1, pady=5)
+        
+        # 坐标
+        ttk.Label(form_frame, text="Coordinates (x, y):").grid(row=4, column=0, sticky=tk.W, pady=5)
+        coord_frame = ttk.Frame(form_frame)
+        coord_frame.grid(row=4, column=1, pady=5)
+        
+        self.x_var = tk.DoubleVar(value=round(random.uniform(0, 100), 2))
+        self.y_var = tk.DoubleVar(value=round(random.uniform(0, 100), 2))
+        
+        ttk.Entry(coord_frame, textvariable=self.x_var, width=12).pack(side=tk.LEFT, padx=2)
+        ttk.Label(coord_frame, text=",").pack(side=tk.LEFT)
+        ttk.Entry(coord_frame, textvariable=self.y_var, width=12).pack(side=tk.LEFT, padx=2)
+        
+        # 提交按钮
+        ttk.Button(form_frame, text="Add Emergency", command=self._on_submit).grid(row=5, column=0, columnspan=2, pady=20)
+        
+        # 等待窗口关闭
+        self.dialog.wait_window(self.dialog)
+
+    def _on_submit(self):
+        """提交按钮回调"""
+        try:
+            # 从表单中获取值
+            emergency_id = self.id_var.get()
+            emergency_type_str = self.type_var.get()
+            severity_level = self.severity_var.get()
+            location = self.location_var.get()
+            x = self.x_var.get()
+            y = self.y_var.get()
+            
+            # 验证输入
+            if not location:
+                messagebox.showerror("Error", "Please enter a location", parent=self.dialog)
+                return
+            
+            if not (1 <= severity_level <= 10):
+                messagebox.showerror("Error", "Severity level must be between 1 and 10", parent=self.dialog)
+                return
+            
+            # 将字符串转换为EmergencyType枚举
+            emergency_type = EmergencyType[emergency_type_str]
+            
+            # 创建紧急情况对象并将其存储在结果中
+            self.result = Emergency(
+                emergency_id=emergency_id,
+                emergency_type=emergency_type,
+                severity_level=severity_level,
+                location=location,
+                coordinates=(x, y)
+            )
+            
+            # 关闭对话框
+            self.dialog.destroy()
+            
+        except Exception as e:
+            messagebox.showerror("Error", str(e), parent=self.dialog) 

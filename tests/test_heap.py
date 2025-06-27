@@ -44,6 +44,19 @@ class TestHeapPriorityQueue(unittest.TestCase):
         """测试从空队列出队"""
         self.assertIsNone(self.queue.dequeue())
     
+    def test_peek(self):
+        """测试查看最高优先级元素"""
+        self.queue.enqueue(self.emergency2)
+        self.queue.enqueue(self.emergency3)
+        self.queue.enqueue(self.emergency1)
+        self.assertEqual(self.queue.peek(), self.emergency1)
+        # 确认peek不移除元素
+        self.assertEqual(len(self.queue), 3)
+
+    def test_peek_empty(self):
+        """测试从空队列查看"""
+        self.assertIsNone(self.queue.peek())
+    
     def test_search(self):
         """测试搜索操作"""
         self.queue.enqueue(self.emergency1)

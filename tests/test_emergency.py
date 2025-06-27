@@ -30,6 +30,11 @@ class TestEmergency(unittest.TestCase):
         with self.assertRaises(TypeError):
             Emergency(5, "FIRE", 1, "测试位置")
     
+    def test_type_setter_validation(self):
+        """测试在创建后对类型属性的验证"""
+        with self.assertRaises(TypeError):
+            self.emergency1.type = "INVALID_TYPE"
+    
     def test_equality(self):
         """测试相等性比较"""
         # 相同严重程度的紧急情况应该相等

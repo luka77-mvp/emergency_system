@@ -91,3 +91,7 @@ class Emergency:
         if not isinstance(other, Emergency):
             raise TypeError("不能与非Emergency类型对象比较")
         return self.severity_level >= other.severity_level
+    
+    def __hash__(self):
+        """让Emergency对象可哈希，以便在集合或字典键中使用"""
+        return hash(self.emergency_id)

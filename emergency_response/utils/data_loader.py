@@ -19,67 +19,35 @@ def load_emergency_data(file_path):
     """
     emergencies = []
     
-    try:
-        with open(file_path, 'r', encoding='utf-8') as file:
-            reader = csv.reader(file)
-            # 跳过标题行
-            next(reader, None)
-            
-            for row in reader:
-                try:
-                    emergency_id = int(row[0])
-                    
-                    # 解析紧急情况类型
-                    type_str = row[1].upper()  # 转换为大写以匹配枚举
-                    if type_str == "FIRE":
-                        emergency_type = EmergencyType.FIRE
-                    elif type_str == "MEDICAL":
-                        emergency_type = EmergencyType.MEDICAL
-                    elif type_str == "POLICE":
-                        emergency_type = EmergencyType.POLICE
-                    elif type_str == "TRAFFIC":
-                        emergency_type = EmergencyType.TRAFFIC
-                    elif type_str == "NATURAL":
-                        emergency_type = EmergencyType.NATURAL
-                    else:
-                        print(f"警告: 未知的紧急情况类型 '{row[1]}', 跳过此行")
-                        continue
-                    
-                    severity_level = int(row[2])
-                    location = row[3]
-                    
-                    # 创建紧急情况对象
-                    if len(row) >= 6:  # 有坐标信息
-                        coordinate_x = float(row[4])
-                        coordinate_y = float(row[5])
-                        emergency = Emergency(
-                            emergency_id=emergency_id,
-                            emergency_type=emergency_type,
-                            severity_level=severity_level,
-                            location=location,
-                            coordinates=(coordinate_x, coordinate_y)
-                        )
-                    else:  # 没有坐标信息，使用默认坐标
-                        emergency = Emergency(
-                            emergency_id=emergency_id,
-                            emergency_type=emergency_type,
-                            severity_level=severity_level,
-                            location=location
-                        )
-                    
-                    emergencies.append(emergency)
-                except Exception as e:
-                    print(f"警告: 处理行 {row} 时发生错误: {e}, 跳过此行")
-        
-        print(f"成功加载了 {len(emergencies)} 条紧急情况记录")
-        return emergencies
+    with open(file_path, 'r', encoding='utf-8') as f:
+        reader = csv.DictReader(f)
+        for row_num, row in enumerate(reader, 1):
+            try:
+                emergency_id = int(row['emergency_id'])
+                # 将类型字符串转换为EmergencyType枚举（不区分大小写）
+                emergency_type_str = row['type'].strip().upper()
+                emergency_type = EmergencyType[emergency_type_str]
+                severity_level = int(row['severity'])
+                location = row['location'].strip()
+                
+                # 坐标是可选的
+                coordinate_x = float(row.get('coordinate_x', 0))
+                coordinate_y = float(row.get('coordinate_y', 0))
+                
+                emergency = Emergency(
+                    emergency_id=emergency_id,
+                    emergency_type=emergency_type,
+                    severity_level=severity_level,
+                    location=location,
+                    coordinates=(coordinate_x, coordinate_y)
+                )
+                emergencies.append(emergency)
+            except (KeyError, ValueError, TypeError) as e:
+                print(f"警告: 无法解析CSV文件第 {row_num + 1} 行。错误: {e}. 跳过此行。")
+                continue
     
-    except FileNotFoundError:
-        print(f"错误: 文件 '{file_path}' 不存在")
-        return []
-    except Exception as e:
-        print(f"错误: 加载数据时发生异常: {e}")
-        return []
+    print(f"成功加载了 {len(emergencies)} 条紧急情况记录")
+    return emergencies
 
 def initialize_priority_queues(emergencies, linked_list_queue, binary_tree_queue, heap_queue):
     """
