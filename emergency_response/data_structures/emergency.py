@@ -71,3 +71,23 @@ class Emergency:
         if not isinstance(other, Emergency):
             raise TypeError("不能与非Emergency类型对象比较")
         return self.severity_level <= other.severity_level
+    
+    def __gt__(self, other):
+        """
+        比较两个紧急情况的优先级（大于，基于严重程度）
+        
+        严重程度数值越小，优先级越高
+        """
+        if not isinstance(other, Emergency):
+            raise TypeError("不能与非Emergency类型对象比较")
+        return self.severity_level > other.severity_level
+    
+    def __ge__(self, other):
+        """
+        比较两个紧急情况的优先级（大于等于，基于严重程度）
+        
+        严重程度数值越小，优先级越高
+        """
+        if not isinstance(other, Emergency):
+            raise TypeError("不能与非Emergency类型对象比较")
+        return self.severity_level >= other.severity_level

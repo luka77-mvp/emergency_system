@@ -123,7 +123,7 @@ class PerformanceAnalyzer:
             heap_time = heap_total / repeat_count
             results['heap'].append(heap_time)
             
-            print(f"数据大小: {size}, 链表: {linked_list_time:.6f} 秒, 二叉树: {binary_tree_time:.6f} 秒, 堆: {heap_time:.6f} 秒")
+            print(f"Data size: {size}, Linked List: {linked_list_time:.6f} seconds, Binary Tree: {binary_tree_time:.6f} seconds, Heap: {heap_time:.6f} seconds")
             
             # 清空队列
             while not self.linked_list_queue.is_empty():
@@ -219,7 +219,7 @@ class PerformanceAnalyzer:
             heap_time = heap_total / repeat_count
             results['heap'].append(heap_time)
             
-            print(f"数据大小: {size}, 链表: {linked_list_time:.6f} 秒, 二叉树: {binary_tree_time:.6f} 秒, 堆: {heap_time:.6f} 秒")
+            print(f"Data size: {size}, Linked List: {linked_list_time:.6f} seconds, Binary Tree: {binary_tree_time:.6f} seconds, Heap: {heap_time:.6f} seconds")
         
         self.results['dequeue'] = results
         return results
@@ -325,7 +325,7 @@ class PerformanceAnalyzer:
             heap_time = heap_total / repeat_count
             results['heap'].append(heap_time)
             
-            print(f"数据大小: {size}, 链表: {linked_list_time:.6f} 秒, 二叉树: {binary_tree_time:.6f} 秒, 堆: {heap_time:.6f} 秒")
+            print(f"Data size: {size}, Linked List: {linked_list_time:.6f} seconds, Binary Tree: {binary_tree_time:.6f} seconds, Heap: {heap_time:.6f} seconds")
         
         self.results['search'] = results
         return results
@@ -344,7 +344,7 @@ class PerformanceAnalyzer:
             包含绘图的matplotlib图形
         """
         if operation not in self.results:
-            print(f"没有{operation}操作的结果可用")
+            print(f"No results available for {operation} operation")
             return None
         
         # 如果未提供图形和轴，则创建
@@ -358,24 +358,27 @@ class PerformanceAnalyzer:
         results = self.results[operation]
         
         # 绘制结果
-        ax.plot(data_sizes, results['linked_list'], 'o-', label='链表')
-        ax.plot(data_sizes, results['binary_tree'], 's-', label='二叉树')
-        ax.plot(data_sizes, results['heap'], '^-', label='堆')
+        ax.plot(data_sizes, results['linked_list'], 'o-', label='Linked List')
+        ax.plot(data_sizes, results['binary_tree'], 's-', label='Binary Tree')
+        ax.plot(data_sizes, results['heap'], '^-', label='Heap')
         
         # 设置标签和标题
-        ax.set_xlabel('数据大小')
-        ax.set_ylabel('时间 (秒)')
-        ax.set_title(f'优先队列{operation.capitalize()}性能')
+        ax.set_xlabel('Data Size')
+        ax.set_ylabel('Time (seconds)')
+        ax.set_title(f'Priority Queue {operation.capitalize()} Performance')
         ax.legend()
         ax.grid(True)
         
+        # 调整布局，确保图形完全显示
         if figure is not None:
+            figure.tight_layout()
+            
             # 仅当不使用GUI时保存到文件
             if ax is None:
                 # 将图表保存到文件
                 plt.savefig(f"{operation}_performance.png")
                 plt.close()
-                print(f"性能图表已保存为{operation}_performance.png")
+                print(f"Performance chart saved as {operation}_performance.png")
         
         return figure
     
@@ -388,15 +391,15 @@ class PerformanceAnalyzer:
             figure: 可选的matplotlib图形对象(用于GUI显示)
             ax: 可选的matplotlib轴对象(用于GUI显示)
         """
-        print("运行入队性能测试...")
+        print("Running enqueue performance tests...")
         self.measure_enqueue_performance(data_sizes)
         self.plot_results('enqueue', data_sizes, figure, ax)
         
-        print("\n运行出队性能测试...")
+        print("\nRunning dequeue performance tests...")
         self.measure_dequeue_performance(data_sizes)
         self.plot_results('dequeue', data_sizes, figure, ax)
         
-        print("\n运行搜索性能测试...")
+        print("\nRunning search performance tests...")
         self.measure_search_performance(data_sizes)
         self.plot_results('search', data_sizes, figure, ax)
         
@@ -411,33 +414,33 @@ class PerformanceAnalyzer:
         """
         complexity_data = {
             'time_complexity': {
-                'operations': ['入队', '出队', '搜索'],
+                'operations': ['Enqueue', 'Dequeue', 'Search'],
                 'linked_list': ['O(n)', 'O(1)', 'O(n)'],
                 'binary_tree': ['O(log n)', 'O(log n)', 'O(n)'],
                 'heap': ['O(log n)', 'O(log n)', 'O(n)']
             },
             'space_complexity': {
-                'data_structures': ['链表', '二叉树', '堆'],
+                'data_structures': ['Linked List', 'Binary Tree', 'Heap'],
                 'complexity': ['O(n)', 'O(n)', 'O(n)']
             }
         }
         
         # 打印复杂度分析
-        print("\n时间复杂度分析:")
+        print("\nTime Complexity Analysis:")
         print("-" * 60)
-        print("| 操作 | 链表        | 二叉树      | 堆         |")
+        print("| Operation | Linked List | Binary Tree | Heap      |")
         print("-" * 60)
-        print("| 入队 | O(n)       | O(log n)   | O(log n)   |")
-        print("| 出队 | O(1)       | O(log n)   | O(log n)   |")
-        print("| 搜索 | O(n)       | O(n)       | O(n)       |")
+        print("| Enqueue   | O(n)       | O(log n)   | O(log n)   |")
+        print("| Dequeue   | O(1)       | O(log n)   | O(log n)   |")
+        print("| Search    | O(n)       | O(n)       | O(n)       |")
         print("-" * 60)
-        print("\n空间复杂度分析:")
+        print("\nSpace Complexity Analysis:")
         print("-" * 60)
-        print("| 数据结构 | 空间复杂度     |")
+        print("| Data Structure | Space Complexity |")
         print("-" * 60)
-        print("| 链表     | O(n)         |")
-        print("| 二叉树   | O(n)         |")
-        print("| 堆       | O(n)         |")
+        print("| Linked List    | O(n)            |")
+        print("| Binary Tree    | O(n)            |")
+        print("| Heap           | O(n)            |")
         print("-" * 60)
         
         return complexity_data
@@ -502,7 +505,7 @@ def compare_performance(arg1=None, arg2=None, arg3=None, test_sizes=None):
     analyzer = PerformanceAnalyzer(linked_list_queue, binary_tree_queue, heap_queue)
     
     # 运行性能测试
-    print("运行性能测试...")
+    print("Running performance tests...")
     
     # 测试入队性能
     enqueue_results = analyzer.measure_enqueue_performance(test_sizes)
@@ -516,32 +519,32 @@ def compare_performance(arg1=None, arg2=None, arg3=None, test_sizes=None):
     # 如果使用旧风格，格式化并返回文本结果
     if return_old_style:
         # 格式化结果为字符串
-        result_text = "性能比较结果\n"
+        result_text = "Performance Comparison Results\n"
         result_text += "=" * 50 + "\n\n"
         
-        result_text += "入队性能:\n"
+        result_text += "Enqueue Performance:\n"
         result_text += "-" * 50 + "\n"
         for i, size in enumerate(test_sizes):
-            result_text += f"数据大小: {size}\n"
-            result_text += f"  链表: {enqueue_results['linked_list'][i]:.6f} 秒\n"
-            result_text += f"  二叉树: {enqueue_results['binary_tree'][i]:.6f} 秒\n"
-            result_text += f"  堆: {enqueue_results['heap'][i]:.6f} 秒\n\n"
+            result_text += f"Data Size: {size}\n"
+            result_text += f"  Linked List: {enqueue_results['linked_list'][i]:.6f} seconds\n"
+            result_text += f"  Binary Tree: {enqueue_results['binary_tree'][i]:.6f} seconds\n"
+            result_text += f"  Heap: {enqueue_results['heap'][i]:.6f} seconds\n\n"
         
-        result_text += "出队性能:\n"
+        result_text += "Dequeue Performance:\n"
         result_text += "-" * 50 + "\n"
         for i, size in enumerate(test_sizes):
-            result_text += f"数据大小: {size}\n"
-            result_text += f"  链表: {dequeue_results['linked_list'][i]:.6f} 秒\n"
-            result_text += f"  二叉树: {dequeue_results['binary_tree'][i]:.6f} 秒\n"
-            result_text += f"  堆: {dequeue_results['heap'][i]:.6f} 秒\n\n"
+            result_text += f"Data Size: {size}\n"
+            result_text += f"  Linked List: {dequeue_results['linked_list'][i]:.6f} seconds\n"
+            result_text += f"  Binary Tree: {dequeue_results['binary_tree'][i]:.6f} seconds\n"
+            result_text += f"  Heap: {dequeue_results['heap'][i]:.6f} seconds\n\n"
         
-        result_text += "时间复杂度分析:\n"
+        result_text += "Time Complexity Analysis:\n"
         result_text += "-" * 50 + "\n"
-        result_text += "| 操作 | 链表        | 二叉树      | 堆         |\n"
-        result_text += "|-----|------------|------------|------------|\n"
-        result_text += "| 入队 | O(n)       | O(log n)   | O(log n)   |\n"
-        result_text += "| 出队 | O(1)       | O(log n)   | O(log n)   |\n"
-        result_text += "| 搜索 | O(n)       | O(n)       | O(n)       |\n\n"
+        result_text += "| Operation | Linked List | Binary Tree | Heap      |\n"
+        result_text += "|-----------|------------|------------|------------|\n"
+        result_text += "| Enqueue   | O(n)       | O(log n)   | O(log n)   |\n"
+        result_text += "| Dequeue   | O(1)       | O(log n)   | O(log n)   |\n"
+        result_text += "| Search    | O(n)       | O(n)       | O(n)       |\n\n"
         
         # 计算加速比
         for i, size in enumerate(test_sizes):
@@ -556,16 +559,16 @@ def compare_performance(arg1=None, arg2=None, arg3=None, test_sizes=None):
             if ll_enqueue > 0:
                 bt_speedup = ll_enqueue / bt_enqueue if bt_enqueue > 0 else 0
                 heap_speedup = ll_enqueue / heap_enqueue if heap_enqueue > 0 else 0
-                result_text += f"对于数据大小 {size}, 入队加速比:\n"
-                result_text += f"  二叉树 vs 链表: {bt_speedup:.2f}x\n"
-                result_text += f"  堆 vs 链表: {heap_speedup:.2f}x\n"
+                result_text += f"For data size {size}, enqueue speedup:\n"
+                result_text += f"  Binary Tree vs Linked List: {bt_speedup:.2f}x\n"
+                result_text += f"  Heap vs Linked List: {heap_speedup:.2f}x\n"
             
             if ll_dequeue > 0:
                 bt_speedup = ll_dequeue / bt_dequeue if bt_dequeue > 0 else 0
                 heap_speedup = ll_dequeue / heap_dequeue if heap_dequeue > 0 else 0
-                result_text += f"对于数据大小 {size}, 出队加速比:\n"
-                result_text += f"  二叉树 vs 链表: {bt_speedup:.2f}x\n"
-                result_text += f"  堆 vs 链表: {heap_speedup:.2f}x\n\n"
+                result_text += f"For data size {size}, dequeue speedup:\n"
+                result_text += f"  Binary Tree vs Linked List: {bt_speedup:.2f}x\n"
+                result_text += f"  Heap vs Linked List: {heap_speedup:.2f}x\n\n"
         
         return result_text
     else:
