@@ -10,14 +10,14 @@ from ..data_structures.heap import HeapPriorityQueue
 
 
 class PerformanceAnalyzer:
-    """A performance analyzer to compare different priority queue implementations."""
+    """一个用于比较不同优先级队列实现的性能分析器。"""
 
     def __init__(self):
-        """Initializes the performance analyzer."""
+        """初始化性能分析器。"""
         self.results = {}
 
     def generate_random_emergencies(self, count):
-        """Generates a list of random emergency objects."""
+        """生成一个随机紧急事件对象的列表。"""
         emergencies = []
         emergency_types = [EmergencyType.FIRE, EmergencyType.MEDICAL, EmergencyType.POLICE]
         locations = ["Downtown", "Suburbs", "City Center", "Industrial Area", "Residential Area"]
@@ -35,11 +35,11 @@ class PerformanceAnalyzer:
 
     def _run_test_for_operation(self, data_sizes, operation_name):
         """
-        Runs a performance test for a specific operation across different data sizes.
+        对不同数据大小的特定操作运行性能测试。
         
-        Parameters:
-            data_sizes: A list of data sizes to test.
-            operation_name: The name of the operation ('enqueue', 'dequeue', 'search').
+        参数:
+            data_sizes: 要测试的数据大小列表。
+            operation_name: 操作名称 ('enqueue', 'dequeue', 'search').
         """
         results = {'Linked List': [], 'Binary Tree': [], 'Heap': []}
         queue_classes = {
@@ -62,12 +62,12 @@ class PerformanceAnalyzer:
                 for _ in range(repeat_count):
                     queue = queue_class()
                     
-                    # Pre-fill queue for dequeue and search
+                    # 为出队和搜索预先填充队列
                     if operation_name in ['dequeue', 'search']:
                         for e in emergencies:
                             queue.enqueue(e)
                     
-                    # Define the operation to be timed
+                    # 定义要计时的操作
                     if operation_name == 'enqueue':
                         op_to_time = lambda: [queue.enqueue(e) for e in emergencies]
                     elif operation_name == 'dequeue':
@@ -96,19 +96,19 @@ class PerformanceAnalyzer:
         self.results[operation_name] = results
 
     def measure_enqueue_performance(self, data_sizes):
-        """Measures the performance of the enqueue operation."""
+        """测量入队操作的性能。"""
         self._run_test_for_operation(data_sizes, "enqueue")
 
     def measure_dequeue_performance(self, data_sizes):
-        """Measures the performance of the dequeue operation."""
+        """测量出队操作的性能。"""
         self._run_test_for_operation(data_sizes, "dequeue")
 
     def measure_search_performance(self, data_sizes):
-        """Measures the performance of the search operation."""
+        """测量搜索操作的性能。"""
         self._run_test_for_operation(data_sizes, "search")
 
     def plot_results(self, operation, data_sizes, figure=None, ax=None):
-        """Plots the performance comparison results on a Matplotlib chart."""
+        """在Matplotlib图表上绘制性能比较结果。"""
         if operation not in self.results:
             print(f"Error: Results for operation '{operation}' are not available.")
             return
@@ -135,7 +135,7 @@ class PerformanceAnalyzer:
             figure.canvas.draw()
 
     def get_complexity_analysis(self):
-        """Returns a dictionary with theoretical complexity analysis."""
+        """返回一个包含理论复杂性分析的字典。"""
         time_complexity = {
             "Operation": ["Enqueue", "Dequeue", "Search"],
             "Linked List": ["O(n)", "O(1)", "O(n)"],
@@ -152,8 +152,7 @@ class PerformanceAnalyzer:
 
 def compare_performance():
     """
-    A factory function to create and return a PerformanceAnalyzer instance.
-    This function is kept for backward compatibility but direct instantiation
-    of PerformanceAnalyzer is now preferred.
+    一个创建并返回PerformanceAnalyzer实例的工厂函数。
+    保留此函数是为了向后兼容，但现在首选直接实例化PerformanceAnalyzer。
     """
     return PerformanceAnalyzer() 
