@@ -83,17 +83,6 @@ class HeapPriorityQueue:
         
         return highest_priority_item
     
-    def peek(self):
-        """
-        查看最高优先级的项目但不移除它
-        
-        返回:
-            最高优先级的紧急情况对象，如果队列为空则返回None
-        """
-        if self.is_empty():
-            return None
-        return self.heap[1]
-    
     def _shift_down(self, index):
         """
         下沉操作 (shift down)，将根部元素移动到正确的位置

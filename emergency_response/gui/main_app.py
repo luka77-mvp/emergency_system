@@ -212,11 +212,16 @@ class MainApplication:
     
     def _open_knn_visualization(self):
         """打开K近邻可视化界面"""
-        # 显示"正在开发中"消息
-        messagebox.showinfo("Information", "Under Development")
+        # 检查队列是否为空
+        if self.current_queue.is_empty():
+            messagebox.showinfo("Notice", "Queue is empty, please load data first")
+            return
+        
+        # 运行KNN可视化GUI
+        run_knn_gui(self.current_queue)
         
         # 更新状态
-        self.status_var.set("KNN visualization feature is under development")
+        self.status_var.set("KNN visualization interface opened")
     
     def _open_statistics(self):
         """打开统计分析界面"""

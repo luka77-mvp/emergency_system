@@ -115,7 +115,6 @@ class CustomIntegerDialog:
             return False
     
     def _on_ok(self):
-        """OK按钮回调"""
         try:
             self.result = self.value_var.get()
             

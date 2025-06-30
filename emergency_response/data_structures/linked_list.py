@@ -90,17 +90,6 @@ class LinkedListPriorityQueue:
             
         return highest_priority
     
-    def peek(self):
-        """
-        查看最高优先级的项目但不移除它
-        
-        返回:
-            最高优先级的紧急情况对象，如果队列为空则返回None
-        """
-        if self.is_empty():
-            return None
-        return self.head.data
-    
     def search(self, emergency_id):
         """
         搜索具有指定ID的紧急情况
