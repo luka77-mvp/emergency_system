@@ -459,32 +459,21 @@ class KNNVisualizationGUI:
         self.canvas.draw()
     
     def _find_k_nearest_units(self, x, y, k):
-        """使用heapq查找给定坐标的k个最近的紧急响应单位。"""
-        # 创建一个最大堆（使用负距离作为优先级）
-        pq = []
+        """使用直接排序查找给定坐标的k个最近的紧急响应单位。"""
+        # 创建一个列表存储所有单位及其距离
+        all_units = []
         
-        # 计算从每个单位到紧急事件的距离并添加到优先队列
+        # 计算从每个单位到紧急事件的距离
         for unit in self.emergency_units:
             # 计算欧几里得距离
             distance = np.sqrt((unit.location_x - x)**2 + (unit.location_y - y)**2)
-            
-            # 创建PrioritizedUnit对象（使用距离作为优先级）
-            prioritized_unit = PrioritizedUnit(unit, distance)
-            
-            # 如果队列未满，直接添加
-            if len(pq) < k:
-                heapq.heappush(pq, prioritized_unit)
-            # 如果队列已满但当前单位更近，则替换最远的单位
-            elif distance < pq[0].severity_level:
-                heapq.heappushpop(pq, prioritized_unit)
-        
-        # 将结果格式转换为[(unit, distance), ...]
-        nearest_units = [(p_unit.unit, p_unit.severity_level) for p_unit in pq]
+            all_units.append((unit, distance))
         
         # 按距离排序（最近的在前）
-        nearest_units.sort(key=lambda x: x[1])
+        all_units.sort(key=lambda x: x[1])
         
-        return nearest_units
+        # 返回前k个最近的单位
+        return all_units[:k]
     
     def _update_recommendation(self):
         """根据当前紧急事件和K值更新推荐"""
