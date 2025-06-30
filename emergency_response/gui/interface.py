@@ -1,5 +1,6 @@
 import tkinter as tk
-from tkinter import ttk, messagebox
+from tkinter import ttk, messagebox, filedialog
+from tkinter.simpledialog import askinteger
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
@@ -139,37 +140,37 @@ class EmergencyResponseGUI:
     
     def _create_queue_display(self):
         """创建队列显示区域"""
-        # 创建包含队列显示和图表的框架
         display_frame = ttk.Frame(self.main_frame)
         display_frame.pack(fill=tk.BOTH, expand=True, padx=5, pady=5)
         
-        # 左侧队列显示
         queue_frame = ttk.LabelFrame(display_frame, text="Emergency Queue", padding="10")
         queue_frame.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=5, pady=5)
         
-        # 创建Treeview以显示队列内容
+        # 创建一个容器来管理 Treeview 和 Canvas
+        self.queue_display_container = ttk.Frame(queue_frame)
+        self.queue_display_container.pack(fill=tk.BOTH, expand=True)
+        
+        # 1. Treeview (用于列表显示)
         columns = ("id", "type", "severity", "location")
-        self.queue_tree = ttk.Treeview(queue_frame, columns=columns, show="headings")
+        self.queue_tree_view = ttk.Treeview(self.queue_display_container, columns=columns, show="headings")
+        self.queue_tree_view.heading("id", text="ID")
+        self.queue_tree_view.heading("type", text="Type")
+        self.queue_tree_view.heading("severity", text="Severity (Lower value = Higher priority)")
+        self.queue_tree_view.heading("location", text="Location")
+        self.queue_tree_view.column("id", width=50, anchor='center')
+        self.queue_tree_view.column("type", width=100, anchor='center')
+        self.queue_tree_view.column("severity", width=100, anchor='center')
+        self.queue_tree_view.column("location", width=150, anchor='center')
         
-        # 设置列标题
-        self.queue_tree.heading("id", text="ID")
-        self.queue_tree.heading("type", text="Type")
-        self.queue_tree.heading("severity", text="Severity (Lower value = Higher priority)")
-        self.queue_tree.heading("location", text="Location")
+        scrollbar = ttk.Scrollbar(self.queue_display_container, orient=tk.VERTICAL, command=self.queue_tree_view.yview)
+        self.queue_tree_view.configure(yscroll=scrollbar.set)
         
-        # 设置列宽
-        self.queue_tree.column("id", width=50)
-        self.queue_tree.column("type", width=100)
-        self.queue_tree.column("severity", width=100)
-        self.queue_tree.column("location", width=150)
+        # 默认不直接 pack，由 _update_queue_display 控制
         
-        # 添加滚动条
-        scrollbar = ttk.Scrollbar(queue_frame, orient=tk.VERTICAL, command=self.queue_tree.yview)
-        self.queue_tree.configure(yscroll=scrollbar.set)
-        
-        # 放置组件
-        self.queue_tree.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
-        scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+        # 2. Canvas (用于树状显示)
+        self.tree_canvas = tk.Canvas(self.queue_display_container, bg="white")
+        # 存储树节点的位置信息，用于点击检测
+        self.tree_nodes = {}  # 格式: {emergency_id: (x, y, radius)}
         
         # 右侧图表显示
         self.chart_frame = ttk.LabelFrame(display_frame, text="Statistics Chart", padding="10")
@@ -197,8 +198,12 @@ class EmergencyResponseGUI:
     def _bind_events(self):
         """将事件绑定到小部件"""
         # 绑定树视图事件
-        self.queue_tree.bind("<Motion>", self._on_tree_hover)
-        self.queue_tree.bind("<Button-1>", self._on_tree_click)
+        self.queue_tree_view.bind("<Motion>", self._on_tree_hover)
+        self.queue_tree_view.bind("<Button-1>", self._on_tree_click)
+        
+        # 绑定树状图 Canvas 事件
+        self.tree_canvas.bind("<Button-1>", self._on_canvas_click)
+        self.tree_canvas.bind("<Motion>", self._on_canvas_hover)
     
     def _on_queue_type_changed(self, event=None):
         """处理队列类型更改"""
@@ -248,138 +253,226 @@ class EmergencyResponseGUI:
             return
         
         # 从所有三个队列中移除最高优先级的紧急情况
-        processed_ll = self.linked_list_queue.dequeue()
-        processed_bt = self.binary_tree_queue.dequeue()
-        processed_heap = self.heap_queue.dequeue()
+        removed_from_linked_list = self.linked_list_queue.dequeue()
+        removed_from_binary_tree = self.binary_tree_queue.dequeue()
+        removed_from_heap = self.heap_queue.dequeue()
         
-        # 理论上，因为它们是同步的，所以它们应该是相同的
-        # 我们只显示其中一个的结果
-        messagebox.showinfo(
-            "Emergency Processed",
-            f"Processed Emergency:\n\n"
-            f"ID: {processed_heap.emergency_id}\n"
-            f"Type: {processed_heap.type.name}\n"
-            f"Severity: {processed_heap.severity_level}"
-        )
-        
-        self._update_queue_display()
-    
-    def _search_emergency(self):
-        """按ID搜索紧急情况"""
-        # 询问紧急情况ID
-        emergency_id = askinteger(self.root, "Search Emergency", "Enter Emergency ID:")
-        
-        if emergency_id is None:
-            return
-        
-        # 在当前队列中搜索
-        start_time = time.perf_counter()
-        emergency = self.current_queue.search(emergency_id)
-        end_time = time.perf_counter()
-        search_time = end_time - start_time
-        
-        if emergency:
-            messagebox.showinfo(
-                "Emergency Found",
-                f"ID: {emergency.emergency_id}\n"
-                f"Type: {emergency.type.name}\n"
-                f"Severity: {emergency.severity_level} (Lower value = Higher priority)\n"
-                f"Location: {emergency.location}\n"
-                f"Coordinates: {emergency.coordinates}\n\n"
-                f"Search time: {search_time:.6f} seconds"
-            )
-            
-            # 更新状态
-            self.status_var.set(f"Found emergency {emergency_id} in {search_time:.6f} seconds")
-        else:
-            messagebox.showinfo("Not Found", f"No emergency found with ID {emergency_id}")
-            
-            # 更新状态
-            self.status_var.set(f"Emergency {emergency_id} not found")
-    
-    def _change_priority(self):
-        """更改紧急情况的优先级（严重性级别）"""
-        # 询问紧急情况ID
-        emergency_id = askinteger(self.root, "Change Priority", "Enter Emergency ID:")
-        
-        if emergency_id is None:
-            return
-        
-        # 在当前队列中搜索
-        emergency = self.current_queue.search(emergency_id)
-        
-        if not emergency:
-            messagebox.showinfo("Not Found", f"No emergency found with ID {emergency_id}")
-            return
-        
-        # 询问新的严重性级别
-        new_severity = askinteger(
-            self.root,
-            "Change Priority", 
-            f"Current severity: {emergency.severity_level}\nEnter new severity level (1-10):\n\nNote: Lower value = Higher priority (1 is most urgent)",
-            minvalue=1, 
-            maxvalue=10
-        )
-        
-        if new_severity is None:
-            return
-        
-        # 在所有队列中更改优先级
-        self.linked_list_queue.change_priority(emergency_id, new_severity)
-        self.binary_tree_queue.change_priority(emergency_id, new_severity)
-        self.heap_queue.change_priority(emergency_id, new_severity)
+        # 检查一致性
+        if not (removed_from_linked_list == removed_from_binary_tree and removed_from_binary_tree == removed_from_heap):
+            messagebox.showwarning("Warning", "Data inconsistency detected between queues after processing an emergency.")
         
         # 更新显示
         self._update_queue_display()
+        messagebox.showinfo("Processed", f"Processed emergency: {removed_from_linked_list}")
+    
+    def _search_emergency(self):
+        """搜索紧急情况"""
+        # 询问要搜索的紧急情况ID
+        emergency_id = askinteger("Search Emergency", "Enter Emergency ID:")
+        if emergency_id is None:  # 用户取消
+            return
         
-        # 更新状态
-        self.status_var.set(f"Changed priority of emergency {emergency_id} to {new_severity}")
+        # 在当前队列中搜索
+        emergency = self.current_queue.search(emergency_id)
+        
+        if emergency:
+            messagebox.showinfo(
+                "Emergency Found", 
+                f"ID: {emergency.emergency_id}\n"
+                f"Type: {emergency.type.name}\n"
+                f"Severity: {emergency.severity_level}\n"
+                f"Location: {emergency.location}\n"
+                f"Coordinates: {emergency.coordinates}"
+            )
+        else:
+            messagebox.showinfo("Not Found", f"No emergency with ID {emergency_id} found.")
+    
+    def _change_priority(self):
+        """更改紧急情况优先级"""
+        # 询问要更改优先级的紧急情况ID
+        emergency_id = askinteger("Change Priority", "Enter Emergency ID:")
+        if emergency_id is None:  # 用户取消
+            return
+        
+        # 在当前队列中搜索
+        emergency = self.current_queue.search(emergency_id)
+        if not emergency:
+            messagebox.showinfo("Not Found", f"No emergency with ID {emergency_id} found.")
+            return
+        
+        # 询问新的严重程度
+        new_severity = askinteger(
+            "Change Priority",
+            f"Current severity: {emergency.severity_level}\nEnter new severity level (1-10):\n\nNote: Lower value = Higher priority (1 is most urgent)",
+            minvalue=1,
+            maxvalue=10
+        )
+        
+        if new_severity is None:  # 用户取消
+            return
+        
+        # 更新所有队列
+        success = self.current_queue.change_priority(emergency_id, new_severity)
+        
+        if success:
+            # 同步更新其他队列
+            if self.current_queue_type.get() == "linked_list":
+                self.binary_tree_queue.change_priority(emergency_id, new_severity)
+                self.heap_queue.change_priority(emergency_id, new_severity)
+            elif self.current_queue_type.get() == "binary_tree":
+                self.linked_list_queue.change_priority(emergency_id, new_severity)
+                self.heap_queue.change_priority(emergency_id, new_severity)
+            else: # heap
+                self.linked_list_queue.change_priority(emergency_id, new_severity)
+                self.binary_tree_queue.change_priority(emergency_id, new_severity)
+                
+            self._update_queue_display()
+            messagebox.showinfo("Success", "Priority changed successfully.")
+        else:
+            messagebox.showerror("Error", "Failed to change priority.")
     
     def _show_statistics(self):
         """显示队列统计信息"""
-        # 从当前队列中获取所有紧急情况
-        emergencies = list(self.current_queue)
-        
-        if not emergencies:
-            messagebox.showinfo("Notice", "No emergencies in the queue to analyze")
+        if self.current_queue.is_empty():
+            messagebox.showinfo("Notice", "Queue is empty, no statistics to show.")
             return
         
-        # 运行统计GUI
-        run_statistics_gui(emergencies)
+        emergencies = list(self.current_queue)
+        run_statistics_gui(emergencies, self.root)
     
     def _run_performance_analysis(self):
         """运行性能分析"""
-        # 此方法现在为空，因为性能分析已被移除
-        pass
+        compare_performance(self.root)
     
     def _update_queue_display(self):
-        """更新队列显示"""
-        # 清除现有项目
-        for item in self.queue_tree.get_children():
-            self.queue_tree.delete(item)
+        """更新队列显示，根据队列类型选择列表或树状图"""
+        # 清空当前所有视图
+        self.queue_tree_view.delete(*self.queue_tree_view.get_children())
+        self.tree_canvas.delete("all")
         
-        # 从当前队列添加紧急情况
-        for emergency in self.current_queue:
-            self.queue_tree.insert(
-                "", 
-                "end", 
-                values=(
-                    emergency.emergency_id,
-                    emergency.type.name,
-                    emergency.severity_level,
-                    emergency.location
-                ),
-                tags=(str(emergency.emergency_id),)
+        # 隐藏所有视图
+        self.queue_tree_view.pack_forget()
+        self.tree_canvas.pack_forget()
+        
+        queue_type = self.current_queue_type.get()
+        
+        if self.current_queue.is_empty():
+            self.tree_canvas.pack(fill=tk.BOTH, expand=True)
+            self.tree_canvas.create_text(
+                self.tree_canvas.winfo_width() / 2, 
+                self.tree_canvas.winfo_height() / 2, 
+                text="Queue is empty",
+                font=("Arial", 16)
             )
-        
-        # 更新队列信息
-        queue_size = len(self.current_queue)
-        queue_type = self._get_queue_type_name()
-        self.queue_info_var.set(f"Queue: {queue_type}, Size: {queue_size}")
-        
-        # 更新统计图表
+        elif queue_type == 'linked_list':
+            # 显示 Treeview
+            self.queue_tree_view.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+            # 填充 Treeview
+            for emergency in self.current_queue:
+                self.queue_tree_view.insert(
+                    "", 
+                    "end", 
+                    values=(
+                        emergency.emergency_id,
+                        emergency.type.name,
+                        emergency.severity_level,
+                        emergency.location
+                    )
+                )
+        else:
+            # 显示 Canvas
+            self.tree_canvas.pack(fill=tk.BOTH, expand=True)
+            # 强制更新UI以获取正确的Canvas尺寸
+            self.root.update_idletasks()
+            # 在 Canvas 上绘制树
+            self._draw_tree()
+
+        # 更新统计图和状态栏
         self._update_statistics_chart()
-    
+        self.queue_info_var.set(f"Queue size: {len(self.current_queue)}")
+
+    def _draw_tree(self):
+        self.tree_canvas.delete("all")
+        self.tree_nodes = {}  # 清空节点位置信息
+        queue_type = self.current_queue_type.get()
+
+        # 获取画布的当前宽度
+        canvas_width = self.tree_canvas.winfo_width()
+        if canvas_width <= 1: # 如果画布还没完全渲染，给一个默认值
+            canvas_width = 800
+
+        # 动态计算初始位置和水平间距
+        initial_x = canvas_width / 2
+        initial_y = 50  # 增加顶部的边距
+        initial_h_gap = canvas_width / 4 # 水平间距为宽度的1/4
+
+        if queue_type == 'binary_tree' and self.current_queue.root:
+            self._draw_binary_tree_node(self.current_queue.root, initial_x, initial_y, initial_h_gap)
+        elif queue_type == 'heap' and not self.current_queue.is_empty():
+            self._draw_heap_node(1, initial_x, initial_y, initial_h_gap)
+
+    def _draw_binary_tree_node(self, node, x, y, h_gap):
+        if not node:
+            return
+
+        v_gap = 70  # 固定的垂直间距
+        node_radius = 30  # 节点半径
+
+        # 绘制节点
+        text = f"S:{node.data.severity_level}\nID:{node.data.emergency_id}"
+        self.tree_canvas.create_oval(x-node_radius, y-node_radius, x+node_radius, y+node_radius, fill="lightblue", outline="black", tags=f"node_{node.data.emergency_id}")
+        self.tree_canvas.create_text(x, y, text=text, font=("Arial", 9), tags=f"text_{node.data.emergency_id}")
+        
+        # 存储节点位置信息，用于点击检测
+        self.tree_nodes[node.data.emergency_id] = (x, y, node_radius)
+
+        # 绘制到左子节点的连线
+        if node.left:
+            x_left = x - h_gap
+            y_left = y + v_gap
+            self.tree_canvas.create_line(x, y + node_radius, x_left, y_left - node_radius)
+            self._draw_binary_tree_node(node.left, x_left, y_left, h_gap / 2)
+
+        # 绘制到右子节点的连线
+        if node.right:
+            x_right = x + h_gap
+            y_right = y + v_gap
+            self.tree_canvas.create_line(x, y + node_radius, x_right, y_right - node_radius)
+            self._draw_binary_tree_node(node.right, x_right, y_right, h_gap / 2)
+
+    def _draw_heap_node(self, index, x, y, h_gap):
+        if index > self.current_queue.count:
+            return
+        
+        v_gap = 70  # 固定的垂直间距
+        node_radius = 30  # 节点半径
+
+        # 绘制节点
+        node_data = self.current_queue.heap[index]
+        text = f"S:{node_data.severity_level}\nID:{node_data.emergency_id}"
+        self.tree_canvas.create_oval(x-node_radius, y-node_radius, x+node_radius, y+node_radius, fill="lightgreen", outline="black", tags=f"node_{node_data.emergency_id}")
+        self.tree_canvas.create_text(x, y, text=text, font=("Arial", 9), tags=f"text_{node_data.emergency_id}")
+        
+        # 存储节点位置信息，用于点击检测
+        self.tree_nodes[node_data.emergency_id] = (x, y, node_radius)
+
+        left_child_index = 2 * index
+        right_child_index = 2 * index + 1
+
+        # 绘制到左子节点的连线
+        if left_child_index <= self.current_queue.count:
+            x_left = x - h_gap
+            y_left = y + v_gap
+            self.tree_canvas.create_line(x, y + node_radius, x_left, y_left - node_radius)
+            self._draw_heap_node(left_child_index, x_left, y_left, h_gap / 2)
+
+        # 绘制到右子节点的连线
+        if right_child_index <= self.current_queue.count:
+            x_right = x + h_gap
+            y_right = y + v_gap
+            self.tree_canvas.create_line(x, y + node_radius, x_right, y_right - node_radius)
+            self._draw_heap_node(right_child_index, x_right, y_right, h_gap / 2)
+
     def _update_statistics_chart(self):
         """更新统计图表"""
         # 清除之前的图表
@@ -460,96 +553,42 @@ class EmergencyResponseGUI:
         self.canvas.draw()
     
     def _on_tree_hover(self, event):
-        """处理树视图上的鼠标悬停"""
-        # 获取光标下的项目
-        item = self.queue_tree.identify_row(event.y)
-        if not item:
-            return
-        
-        # 从项目中获取紧急情况ID
-        values = self.queue_tree.item(item, 'values')
-        if not values:
-            return
-        
-        emergency_id = int(values[0])
-        
-        # 在当前队列中查找紧急情况
-        emergency = self.current_queue.search(emergency_id)
-        if not emergency:
-            return
-        
-        # 使用紧急情况信息更新状态栏
-        self.status_var.set(
-            f"ID: {emergency.emergency_id}, "
-            f"Type: {emergency.type.name}, "
-            f"Severity: {emergency.severity_level} (Lower value = Higher priority), "
-            f"Location: {emergency.location}"
-        )
+        """当鼠标悬停在Treeview项目上时"""
+        # 重命名 self.queue_tree 为 self.queue_tree_view
+        item = self.queue_tree_view.identify_row(event.y)
+        if item:
+            self.status_var.set(f"Hovering over: {self.queue_tree_view.item(item)['values']}")
+        else:
+            self.status_var.set("Ready")
     
     def _on_tree_click(self, event):
-        """处理树视图上的点击"""
-        # 获取光标下的项目
-        item = self.queue_tree.identify_row(event.y)
-        if not item:
+        """当鼠标点击Treeview项目时，显示上下文菜单"""
+        # 重命名 self.queue_tree 为 self.queue_tree_view
+        item_id = self.queue_tree_view.identify_row(event.y)
+        if not item_id:
             return
+
+        # 选中被点击的行
+        self.queue_tree_view.selection_set(item_id)
         
-        # 从项目中获取紧急情况ID
-        values = self.queue_tree.item(item, 'values')
-        if not values:
-            return
+        # 获取紧急情况ID
+        emergency_id_str = self.queue_tree_view.item(item_id)["values"][0]
+        emergency_id = int(emergency_id_str)
         
-        emergency_id = int(values[0])
-        
-        # 在当前队列中查找紧急情况
-        emergency = self.current_queue.search(emergency_id)
-        if not emergency:
-            return
-        
-        # 显示紧急情况详情对话框
-        details_dialog = tk.Toplevel(self.root)
-        details_dialog.title(f"Emergency {emergency_id} Details")
-        details_dialog.geometry("400x300")
-        details_dialog.transient(self.root)
-        details_dialog.grab_set()
-        
-        # 创建详情框架
-        details_frame = ttk.Frame(details_dialog, padding="20")
-        details_frame.pack(fill=tk.BOTH, expand=True)
-        
-        # 显示紧急情况详情
-        ttk.Label(details_frame, text="Emergency Details", font=("Arial", 14, "bold")).grid(row=0, column=0, columnspan=2, pady=10, sticky=tk.W)
-        
-        ttk.Label(details_frame, text="ID:").grid(row=1, column=0, sticky=tk.W, pady=5)
-        ttk.Label(details_frame, text=str(emergency.emergency_id)).grid(row=1, column=1, sticky=tk.W, pady=5)
-        
-        ttk.Label(details_frame, text="Type:").grid(row=2, column=0, sticky=tk.W, pady=5)
-        ttk.Label(details_frame, text=emergency.type.name).grid(row=2, column=1, sticky=tk.W, pady=5)
-        
-        ttk.Label(details_frame, text="Severity:").grid(row=3, column=0, sticky=tk.W, pady=5)
-        severity_frame = ttk.Frame(details_frame)
-        severity_frame.grid(row=3, column=1, sticky=tk.W, pady=5)
-        ttk.Label(severity_frame, text=str(emergency.severity_level)).pack(side=tk.LEFT)
-        ttk.Label(severity_frame, text=" (Lower value = Higher priority)", font=("Arial", 9, "italic")).pack(side=tk.LEFT)
-        
-        ttk.Label(details_frame, text="Location:").grid(row=4, column=0, sticky=tk.W, pady=5)
-        ttk.Label(details_frame, text=emergency.location).grid(row=4, column=1, sticky=tk.W, pady=5)
-        
-        ttk.Label(details_frame, text="Coordinates:").grid(row=5, column=0, sticky=tk.W, pady=5)
-        ttk.Label(details_frame, text=f"({emergency.coordinates[0]}, {emergency.coordinates[1]})").grid(row=5, column=1, sticky=tk.W, pady=5)
-        
-        # 添加按钮
-        buttons_frame = ttk.Frame(details_frame)
-        buttons_frame.grid(row=6, column=0, columnspan=2, pady=20)
+        # 创建上下文菜单
+        context_menu = tk.Menu(self.root, tearoff=0)
+        context_menu.add_command(label="Change Priority", command=lambda: on_change_priority())
+        context_menu.add_command(label="Delete", command=lambda: on_delete())
         
         # 更改优先级按钮
         def on_change_priority():
             # 询问新的严重性级别
             new_severity = askinteger(
-                details_dialog,
                 "Change Priority", 
-                f"Current severity: {emergency.severity_level}\nEnter new severity level (1-10):\n\nNote: Lower value = Higher priority (1 is most urgent)",
+                f"Current severity: {self.current_queue.search(emergency_id).severity_level}\nEnter new severity level (1-10):\n\nNote: Lower value = Higher priority (1 is most urgent)",
                 minvalue=1, 
-                maxvalue=10
+                maxvalue=10,
+                parent=self.root
             )
             
             if new_severity is None:
@@ -564,17 +603,15 @@ class EmergencyResponseGUI:
             self._update_queue_display()
             
             # 关闭对话框
-            details_dialog.destroy()
+            self.root.update()
             
             # 更新状态
             self.status_var.set(f"Changed priority of emergency {emergency_id} to {new_severity}")
         
-        ttk.Button(buttons_frame, text="Change Priority", command=on_change_priority).pack(side=tk.LEFT, padx=5)
-        
         # 删除按钮
         def on_delete():
             # 请求确认
-            if not messagebox.askyesno("Confirm Delete", f"Are you sure you want to delete emergency {emergency_id}?", parent=details_dialog):
+            if not messagebox.askyesno("Confirm Delete", f"Are you sure you want to delete emergency {emergency_id}?", parent=self.root):
                 return
             
             # 我们不能直接从优先级队列中删除，所以我们需要重建它们
@@ -601,15 +638,15 @@ class EmergencyResponseGUI:
             self._update_queue_display()
             
             # 关闭对话框
-            details_dialog.destroy()
+            self.root.update()
             
             # 更新状态
             self.status_var.set(f"Deleted emergency {emergency_id}")
         
-        ttk.Button(buttons_frame, text="Delete", command=on_delete).pack(side=tk.LEFT, padx=5)
-        
-        # 关闭按钮
-        ttk.Button(buttons_frame, text="Close", command=details_dialog.destroy).pack(side=tk.LEFT, padx=5)
+        try:
+            context_menu.tk_popup(event.x_root, event.y_root)
+        finally:
+            context_menu.grab_release()
 
     def _clear_queue(self):
         """清空所有队列中的所有紧急情况"""
@@ -623,6 +660,141 @@ class EmergencyResponseGUI:
 
         self._update_queue_display()
         messagebox.showinfo("Success", "All queues have been cleared.")
+
+    def _on_canvas_hover(self, event):
+        """当鼠标在Canvas上移动时，检测是否悬停在节点上"""
+        emergency_id = self._find_node_at_position(event.x, event.y)
+        if emergency_id:
+            emergency = self.current_queue.search(emergency_id)
+            if emergency:
+                self.status_var.set(f"ID: {emergency.emergency_id}, Type: {emergency.type.name}, Severity: {emergency.severity_level}, Location: {emergency.location}")
+                self.tree_canvas.config(cursor="hand2")  # 改变鼠标指针
+            else:
+                self.status_var.set("Ready")
+                self.tree_canvas.config(cursor="")
+        else:
+            self.status_var.set("Ready")
+            self.tree_canvas.config(cursor="")
+
+    def _on_canvas_click(self, event):
+        """当点击Canvas上的节点时，显示上下文菜单"""
+        emergency_id = self._find_node_at_position(event.x, event.y)
+        if not emergency_id:
+            return
+            
+        emergency = self.current_queue.search(emergency_id)
+        if not emergency:
+            return
+            
+        # 创建上下文菜单
+        context_menu = tk.Menu(self.root, tearoff=0)
+        
+        # 更改优先级菜单项
+        context_menu.add_command(
+            label="Change Priority", 
+            command=lambda: self._change_node_priority(emergency_id)
+        )
+        
+        # 删除菜单项
+        context_menu.add_command(
+            label="Delete", 
+            command=lambda: self._delete_node(emergency_id)
+        )
+        
+        # 显示上下文菜单
+        try:
+            context_menu.tk_popup(event.x_root, event.y_root)
+        finally:
+            context_menu.grab_release()
+
+    def _find_node_at_position(self, x, y):
+        """检查给定的坐标是否在某个节点内"""
+        for emergency_id, (node_x, node_y, radius) in self.tree_nodes.items():
+            # 使用距离公式检查点是否在圆内
+            if (x - node_x) ** 2 + (y - node_y) ** 2 <= radius ** 2:
+                return emergency_id
+        return None
+
+    def _change_node_priority(self, emergency_id):
+        """更改节点优先级"""
+        # 获取当前紧急情况
+        emergency = self.current_queue.search(emergency_id)
+        if not emergency:
+            return
+            
+        # 询问新的严重程度
+        new_severity = askinteger(
+            "Change Priority",
+            f"Current severity: {emergency.severity_level}\nEnter new severity level (1-10):\n\nNote: Lower value = Higher priority (1 is most urgent)",
+            minvalue=1,
+            maxvalue=10,
+            parent=self.root
+        )
+        
+        if new_severity is None:  # 用户取消
+            return
+            
+        # 更新所有队列
+        if self.current_queue_type.get() == "linked_list":
+            self.linked_list_queue.change_priority(emergency_id, new_severity)
+            self.binary_tree_queue.change_priority(emergency_id, new_severity)
+            self.heap_queue.change_priority(emergency_id, new_severity)
+        elif self.current_queue_type.get() == "binary_tree":
+            self.binary_tree_queue.change_priority(emergency_id, new_severity)
+            self.linked_list_queue.change_priority(emergency_id, new_severity)
+            self.heap_queue.change_priority(emergency_id, new_severity)
+        else:  # heap
+            self.heap_queue.change_priority(emergency_id, new_severity)
+            self.linked_list_queue.change_priority(emergency_id, new_severity)
+            self.binary_tree_queue.change_priority(emergency_id, new_severity)
+            
+        # 更新显示
+        self._update_queue_display()
+        self.status_var.set(f"Changed priority of emergency {emergency_id} to {new_severity}")
+
+    def _delete_node(self, emergency_id):
+        """删除节点"""
+        from tkinter import messagebox
+        
+        # 请求确认
+        if not messagebox.askyesno("Confirm Delete", f"Are you sure you want to delete emergency {emergency_id}?", parent=self.root):
+            return
+            
+        # 从所有队列中删除
+        # 首先从当前队列中获取紧急情况对象
+        emergency = self.current_queue.search(emergency_id)
+        if not emergency:
+            return
+            
+        # 从链表队列中删除
+        temp_list = []
+        while not self.linked_list_queue.is_empty():
+            item = self.linked_list_queue.dequeue()
+            if item.emergency_id != emergency_id:
+                temp_list.append(item)
+                
+        # 重新入队
+        for item in temp_list:
+            self.linked_list_queue.enqueue(item)
+            
+        # 从二叉树队列中删除
+        self.binary_tree_queue.remove(emergency_id)
+        
+        # 从堆队列中删除
+        # 由于堆没有直接的删除方法，我们需要重建堆
+        temp_list = []
+        while not self.heap_queue.is_empty():
+            item = self.heap_queue.dequeue()
+            if item.emergency_id != emergency_id:
+                temp_list.append(item)
+                
+        # 重新入队
+        for item in temp_list:
+            self.heap_queue.enqueue(item)
+            
+        # 更新显示
+        self._update_queue_display()
+        self.status_var.set(f"Deleted emergency {emergency_id}")
 
 def run_gui():
     """运行应急响应管理系统GUI"""
