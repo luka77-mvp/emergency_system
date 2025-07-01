@@ -424,11 +424,7 @@ class MainApplication:
     
     def _open_simulation(self):
         """打开应急调度模拟界面"""
-        # 显示"正在开发中"消息
-        messagebox.showinfo("Information", "Under Development")
-        
-        # 更新状态
-        self.status_var.set("Emergency dispatch simulation feature is under development")
+        run_simulation_gui()  # 调用emergency_simulation.py中的函数
     
     def _load_data(self):
         """从文件加载紧急情况数据"""
