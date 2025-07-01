@@ -19,7 +19,7 @@ class StatisticsGUI:
         """
         self.root = root
         self.root.title("Emergency Statistics Analysis")
-        self.root.geometry("900x700")
+        self.root.geometry("900x800")
         
         # 存储紧急情况
         self.emergencies = emergencies
@@ -62,6 +62,13 @@ class StatisticsGUI:
         self.max_severity_var = tk.StringVar(value="Maximum Severity: 0")
         ttk.Label(info_frame, textvariable=self.max_severity_var).grid(row=1, column=1, sticky=tk.W, padx=10)
         
+        # 创建时间复杂度和空间复杂度标签
+        self.time_complexity_var = tk.StringVar(value="Time Complexity: Enqueue O(n), Dequeue O(1), Search O(n) for Linked List; Enqueue O(log n), Dequeue O(log n), Search O(n) for Binary Tree; Enqueue O(log n), Dequeue O(log n), Search O(1) for Heap")
+        ttk.Label(info_frame, textvariable=self.time_complexity_var, anchor='center').grid(row=2, column=0, sticky=tk.W, padx=10)
+        
+        self.space_complexity_var = tk.StringVar(value="Space Complexity: O(n) for all structures")
+        ttk.Label(info_frame, textvariable=self.space_complexity_var, anchor='center').grid(row=2, column=1, sticky=tk.W, padx=10)
+        
         # 创建图表框架
         charts_frame = ttk.Frame(main_frame)
         charts_frame.pack(fill=tk.BOTH, expand=True, padx=5, pady=5)
@@ -99,6 +106,19 @@ class StatisticsGUI:
             text="Close",
             command=self.root.destroy
         ).pack(side=tk.RIGHT, padx=5)
+        
+        # 创建滚动条
+        self.scrollbar = tk.Scrollbar(self.root)
+        self.scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+        
+        # 创建一个框架来放置复杂度信息
+        self.complexity_frame = tk.Frame(self.root)
+        self.complexity_frame.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        
+        # 将复杂度信息放入框架中
+        self.complexity_text = tk.Text(self.complexity_frame, yscrollcommand=self.scrollbar.set)
+        self.complexity_text.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        self.scrollbar.config(command=self.complexity_text.yview)
     
     def _update_statistics(self):
         """更新统计数据和图表"""

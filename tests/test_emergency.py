@@ -73,5 +73,29 @@ class TestEmergency(unittest.TestCase):
         self.assertEqual(self.emergency1.emergency_id, emergency5.emergency_id)  # 确保ID相同
         self.assertNotEqual(self.emergency1, emergency5)  # 确保对象不同
 
+    def test_invalid_initialization(self):
+        """测试使用无效参数初始化紧急情况"""
+        with self.assertRaises(ValueError):
+            Emergency(-1, EmergencyType.FIRE, 1, "Invalid Location", (10, 20))  # 负ID
+        with self.assertRaises(ValueError):
+            Emergency(1, EmergencyType.FIRE, -1, "Invalid Location", (10, 20))  # 负优先级
+        with self.assertRaises(TypeError):
+            Emergency(1, "FIRE", 1, "Invalid Location", (10, 20))  # 无效类型
+
+    def test_type_setter(self):
+        """测试类型设置器"""
+        emergency = Emergency(1, EmergencyType.FIRE, 1, "市中心", (10, 20))
+        emergency.type = EmergencyType.MEDICAL  # 应该成功
+        with self.assertRaises(TypeError):
+            emergency.type = "INVALID_TYPE"  # 应该引发TypeError
+
+    def test_equality_with_different_types(self):
+        """测试与不同类型的对象比较"""
+        self.assertNotEqual(self.emergency1, "Not an Emergency")  # 应该返回不相等
+
+    def test_hash(self):
+        """测试Emergency对象的哈希值"""
+        self.assertEqual(hash(self.emergency1), hash(Emergency(1, EmergencyType.FIRE, 1, "Location A")))  # 应该相等
+
 if __name__ == '__main__':
     unittest.main() 
