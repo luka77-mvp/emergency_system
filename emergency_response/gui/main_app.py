@@ -84,7 +84,7 @@ class MainApplication:
         emergency_button = ttk.Button(
             button_frame,
             text="Emergency Management",
-            width=25,
+            width=30,
             command=self._open_emergency_management
         )
         emergency_button.grid(row=0, column=0, padx=10, pady=10)
@@ -94,7 +94,7 @@ class MainApplication:
         knn_button = ttk.Button(
             button_frame,
             text="KNN Visualization",
-            width=25,
+            width=30,
             command=self._open_knn_visualization
         )
         knn_button.grid(row=0, column=1, padx=10, pady=10)
@@ -104,7 +104,7 @@ class MainApplication:
         stats_button = ttk.Button(
             button_frame,
             text="Statistical Analysis",
-            width=25,
+            width=30,
             command=self._open_statistics
         )
         stats_button.grid(row=1, column=0, padx=10, pady=10)
@@ -114,7 +114,7 @@ class MainApplication:
         perf_button = ttk.Button(
             button_frame,
             text="Performance Comparison",
-            width=25,
+            width=30,
             command=self._run_performance_comparison
         )
         perf_button.grid(row=1, column=1, padx=10, pady=10)
@@ -124,7 +124,7 @@ class MainApplication:
         simulation_button = ttk.Button(
             button_frame,
             text="Emergency Dispatch Simulation",
-            width=25,
+            width=30,
             command=self._open_simulation
         )
         simulation_button.grid(row=2, column=0, padx=10, pady=10)
@@ -134,7 +134,7 @@ class MainApplication:
         load_button = ttk.Button(
             button_frame,
             text="Load Data",
-            width=25,
+            width=30,
             command=self._load_data
         )
         load_button.grid(row=2, column=1, padx=10, pady=10)
@@ -144,7 +144,7 @@ class MainApplication:
         exit_button = ttk.Button(
             button_frame,
             text="Exit",
-            width=25,
+            width=30,
             command=self.root.destroy
         )
         exit_button.grid(row=3, column=0, columnspan=2, padx=10, pady=10)

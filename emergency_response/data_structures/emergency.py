@@ -20,6 +20,10 @@ class Emergency:
             location: 位置描述（字符串）
             coordinates: 可选，位置坐标 (x, y)
         """
+        if emergency_id < 0:
+            raise ValueError("紧急情况ID必须为非负数")
+        if severity_level < 1 or severity_level > 10:
+            raise ValueError("严重程度必须在1到10之间")
         self.emergency_id = emergency_id
         self._type = None 
         self.type = emergency_type  

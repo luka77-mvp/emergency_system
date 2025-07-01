@@ -32,6 +32,18 @@ class TestPerformanceAnalyzer(unittest.TestCase):
             self.assertIn(emergency.severity_level, range(1, 11))
             self.assertIsNotNone(emergency.location)
     
+    def test_generate_random_emergencies_edge_cases(self):
+        """
+        测试生成0个和负数个紧急情况数据
+        """
+        # 测试生成0个紧急情况
+        emergencies = self.analyzer.generate_random_emergencies(0)
+        self.assertEqual(len(emergencies), 0)
+        
+        # 测试生成负数个紧急情况
+        emergencies = self.analyzer.generate_random_emergencies(-5)
+        self.assertEqual(len(emergencies), 0)  # 假设返回空列表
+    
     def test_measure_enqueue_performance(self):
         """测试测量入队操作性能"""
         data_sizes = [10, 20]

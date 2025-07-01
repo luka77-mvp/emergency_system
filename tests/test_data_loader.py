@@ -102,5 +102,15 @@ class TestDataLoader(unittest.TestCase):
         self.assertEqual(heap_queue.dequeue().emergency_id, 3)  # Police, severity 4
         self.assertEqual(heap_queue.dequeue().emergency_id, 1)  # Fire, severity 5
 
+    def test_load_emergency_data_from_empty_file(self):
+        """
+        测试从空文件加载紧急情况数据
+        """
+        empty_file = tempfile.NamedTemporaryFile(delete=False, mode='w', suffix='.csv', encoding='utf-8')
+        empty_file.close()
+        emergencies = load_emergency_data(empty_file.name)
+        self.assertEqual(len(emergencies), 0)  # 确保返回空列表
+        os.unlink(empty_file.name)  # 清理文件
+
 if __name__ == '__main__':
     unittest.main() 

@@ -91,5 +91,13 @@ class TestLinkedListPriorityQueue(unittest.TestCase):
         self.assertEqual(items[1], self.emergency3)
         self.assertEqual(items[2], self.emergency2)
 
+    def test_enqueue_empty_queue(self):
+        """
+        测试在空队列中入队和出队的情况
+        """
+        self.assertIsNone(self.queue.dequeue())  # 确保出队返回None
+        self.queue.enqueue(self.emergency1)
+        self.assertEqual(self.queue.dequeue(), self.emergency1)  # 确保入队后可以出队
+
 if __name__ == '__main__':
     unittest.main() 

@@ -52,5 +52,16 @@ class TestEmergency(unittest.TestCase):
         expected = "Emergency(ID=1, Type=FIRE, Severity=1, Location=市中心)"
         self.assertEqual(repr(self.emergency1), expected)
 
+    def test_initialization_invalid_id(self):
+        """
+        测试使用无效参数初始化紧急情况
+        """
+        with self.assertRaises(ValueError):
+            Emergency(-1, EmergencyType.FIRE, 1, "Invalid Location", (10, 20))  # 负ID
+        with self.assertRaises(ValueError):
+            Emergency(1, EmergencyType.FIRE, -1, "Invalid Location", (10, 20))  # 负优先级
+        with self.assertRaises(TypeError):
+            Emergency(1, "FIRE", 1, "Invalid Location", (10, 20))  # 无效类型
+
 if __name__ == '__main__':
     unittest.main() 
