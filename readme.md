@@ -74,13 +74,6 @@ pip install matplotlib numpy tkinter
 python main.py
 ```
 
-### Run the Graphical User Interface
-
-```bash
-# Method : Start through the main program
-python main.py
-```
-
 ## Data Format
 
 The emergency data file should be in CSV format, containing the following columns:
