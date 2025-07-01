@@ -31,13 +31,15 @@ class TestEmergency(unittest.TestCase):
             Emergency(5, "FIRE", 1, "测试位置")
     
     def test_equality(self):
-        """测试相等性比较"""
-        # 相同严重程度的紧急情况应该相等
-        emergency_same = Emergency(5, EmergencyType.MEDICAL, 1, "测试位置")
-        self.assertEqual(self.emergency1, emergency_same)
+        """
+        测试相等性比较
+        """
+        # 创建一个与self.emergency1相同的紧急情况对象
+        emergency_same = Emergency(1, EmergencyType.FIRE, 1, "市中心", (10, 20))
+        self.assertEqual(self.emergency1, emergency_same)  # 确保相等
         
-        # 不同严重程度的紧急情况不应该相等
-        self.assertNotEqual(self.emergency1, self.emergency2)
+        # 不同的紧急情况对象
+        self.assertNotEqual(self.emergency1, self.emergency2)  # 确保不相等
     
     def test_less_than(self):
         """测试小于比较（优先级比较）"""
@@ -62,6 +64,14 @@ class TestEmergency(unittest.TestCase):
             Emergency(1, EmergencyType.FIRE, -1, "Invalid Location", (10, 20))  # 负优先级
         with self.assertRaises(TypeError):
             Emergency(1, "FIRE", 1, "Invalid Location", (10, 20))  # 无效类型
+
+    def test_enqueue_same_id(self):
+        """
+        测试插入两个具有相同ID的紧急情况
+        """
+        emergency5 = Emergency(1, EmergencyType.FIRE, 1, "Duplicate Location", (10, 20))
+        self.assertEqual(self.emergency1.emergency_id, emergency5.emergency_id)  # 确保ID相同
+        self.assertNotEqual(self.emergency1, emergency5)  # 确保对象不同
 
 if __name__ == '__main__':
     unittest.main() 

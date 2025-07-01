@@ -138,5 +138,16 @@ class TestHeapPriorityQueue(unittest.TestCase):
         self.queue.enqueue(self.emergency1)
         self.assertEqual(self.queue.dequeue(), self.emergency1)  # 确保入队后可以出队
 
+    def test_enqueue_same_id(self):
+        """
+        测试插入两个具有相同ID的紧急情况
+        """
+        emergency5 = Emergency(1, EmergencyType.FIRE, 1, "Duplicate Location", (10, 20))
+        self.queue.enqueue(self.emergency1)  # ID为1
+        self.queue.enqueue(emergency5)  # ID也为1
+        self.assertEqual(len(self.queue), 2)  # 确保队列长度为2
+        self.assertEqual(self.queue.dequeue(), self.emergency1)  # 确保第一个出队的是emergency1
+        self.assertEqual(self.queue.dequeue(), emergency5)  # 确保第二个出队的是emergency5
+
 if __name__ == '__main__':
     unittest.main() 

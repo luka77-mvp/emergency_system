@@ -48,13 +48,13 @@ class Emergency:
     
     def __eq__(self, other):
         """
-        比较两个紧急情况是否相等（基于严重程度）
-        
-        两个紧急情况的严重程度相同时，它们被认为是相等的
+        比较两个紧急情况是否相等（基于ID、严重程度和位置）
         """
         if not isinstance(other, Emergency):
             return False
-        return self.severity_level == other.severity_level
+        return (self.emergency_id == other.emergency_id and
+                self.severity_level == other.severity_level and
+                self.location == other.location)
     
     def __lt__(self, other):
         """
