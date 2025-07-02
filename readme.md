@@ -175,15 +175,6 @@ emergency_system/
 
 ```
 
-### Key File Descriptions
-- `main.py`: Main entry, launches the GUI
-- `data_loader.py`: Loads emergency data from CSV
-- `performance_analyzer.py`: Analyzes performance of different data structures
-- `interface.py`: Main emergency management interface
-- `knn_visualization.py`: KNN response unit recommendation visualization
-- `statistics.py`: Emergency statistics analysis interface
-- `emergency_simulation.py`: Emergency dispatch simulation interface
-
 ## 6. Project Features and Application Scenarios
 
 ### Main Features
