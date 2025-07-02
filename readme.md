@@ -87,7 +87,7 @@ def __lt__(self, other):
 In developing this project, we gave special consideration to how we used our data structures and the overall efficiency of the system.
 
 #### 4.4.1. Our Current Design and Its Justification
-In the current implementation, we decided to maintain three separate instances of our priority queues (LinkedList, BinarySearchTree, and Min-Heap) simultaneously.
+In the current implementation, we decided to maintain three separate instances of our priority queues simultaneously.
 
 **Our Rationale**:
 This decision was made primarily for **comparative purposes**. We wanted to build a system where a user could easily switch between different views and observe, in real-time, how each data structure behaves with the exact same dataset.
