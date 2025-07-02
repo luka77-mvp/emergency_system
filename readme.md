@@ -281,9 +281,9 @@ The GUI is developed with `tkinter` and includes the following main interfaces:
 - **Day 4**: Developing the KNN algorithm and visualization. We iteratively tested the algorithm to ensure accuracy in distance calculations.
 - **Day 5**: Testing and debugging the system. We conducted unit tests on each module and integrated them into the main application.
 - **Day 6**: Debugging the system, find and fix bugs in the system.
-- **Day 7**: Almost finish the task, start making the PPT and the 'Readme.txt'.
-- **Day 8**: Continue making the PPT and the 'Readme.txt'.
-- **Day 9**: Finish the PPT and the and the 'Readme.txt'.
+- **Day 7**: Almost finish the task, start making the PPT and the 'readme.md'.
+- **Day 8**: Continue making the PPT and the 'readme.md'.
+- **Day 9**: Finish the PPT and the and the 'readme.md'.
 
 ## Conclusion
 This city emergency response management system provides an efficient emergency management solution by implementing three different priority queue data structures (linked list, binary tree, and heap). The system combines an intuitive visual interface and powerful analysis tools to help emergency response departments optimize resource allocation and improve response efficiency.
