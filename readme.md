@@ -1,53 +1,53 @@
-# City Emergency Response Management System Project Report
+# City Emergency Response Management System: Project Report
 
-## 1. Installation Instructions
+## 1. Introduction
+This report details the design, implementation, and features of the City Emergency Response Management System. The project's core purpose is to provide an efficient and intuitive platform for managing urban emergencies by leveraging and comparing different priority queue data structures.
 
-### System Requirements
+## 2. Team Roles and Responsibilities
+| Name         | Main Responsibilities                                                                 |
+|--------------|---------------------------------------------------------------------------------------|
+| Li Boxi      | Core architecture & data structures; main program architecture; GUI and data structure integration; data structure flowcharts |
+| Liu Zhihan   | GUI Development (Part 1): Main interface, main application, and emergency simulation module |
+| Liu Zizheng  | GUI Development (Part 2): Custom dialogs, statistics module, and KNN visualization module |
+| Li Shu       | Data Processing & Simulation: Data loader, dataset management, and performance analyzer module |
+| Wang Wanting | Testing & Documentation: All unit tests, system documentation, and user manual (readme.md) |
+
+## 3. Installation and Execution
+### 3.1. System Requirements
 - Python 3.7 or higher
 
-### Installation Steps
-1. Install dependencies:
-   ```bash
-   pip install matplotlib numpy pandas tk
-   ```
-
-2. Run the main program:
-   ```bash
-   python main.py
-   ```
-## Project Roles
-
-| Name      | Main Responsibilities                                                                 |
-|-----------|---------------------------------------------------------------------------------------|
-| Li Boxi   | Core architecture & data structures: Responsible for all core data structure implementations (binary_tree.py, heap.py, linked_list.py, emergency.py); main program architecture design (main.py); GUI and data structure integration; drawing data structure flowcharts |
-| Liu Zhihan| GUI Development (Part 1): Develop main interface (interface.py); main application (main_app.py); emergency simulation module (emergency_simulation.py) |
-| Liu Zizheng| GUI Development (Part 2): Develop custom dialogs (custom_dialogs.py); statistics module (statistics.py); KNN visualization module (knn_visualization.py) |
-| Li Shu    | Data Processing & Simulation: Develop data loader (data_loader.py); dataset preparation and management (emergency_dataset.csv); performance analyzer module (performance_analyzer.py) |
-| Wang Wanting| Testing & Documentation: Write all unit tests; system documentation; user manual (readme.md) |
-
-## 2. Dependencies
+### 3.2. Dependencies
 | Library Name | Version | Purpose |
-|-------------|---------|---------|
-| tkinter     | Built-in Python | GUI development |
-| matplotlib  | ≥3.5.0  | Data visualization and charting |
-| numpy       | ≥1.22.0 | Numerical computation and data processing |
-| pandas      | ≥1.4.0  | Data analysis and processing |
-| csv         | Built-in Python | CSV file read/write |
-| unittest    | Built-in Python | Unit testing framework |
-| random      | Built-in Python | Generate random data |
-| time        | Built-in Python | Time-related operations |
+|--------------|---------|---------|
+| tkinter      | Built-in | GUI development |
+| matplotlib   | ≥3.5.0  | Data visualization and charting |
+| numpy        | ≥1.22.0 | Numerical computation and data processing |
+| pandas       | ≥1.4.0  | Data analysis and processing |
+| csv          | Built-in | CSV file read/write |
+| unittest     | Built-in | Unit testing framework |
+| random       | Built-in | Generate random data |
+| time         | Built-in | Time-related operations |
 
-## 3. Backend Code Design Description
+### 3.3. Running the Application
+1.  **Install dependencies**:
+    ```bash
+    pip install matplotlib numpy pandas tk
+    ```
+2.  **Run the main program**:
+    ```bash
+    python main.py
+    ```
 
-### Emergency Class
+## 4. Backend Design
+### 4.1. Emergency Class
 The `Emergency` class represents an emergency instance with the following attributes:
-- `emergency_id`: Unique identifier for the emergency
-- `type`: Emergency type (using `EmergencyType` enum)
-- `severity_level`: Severity (1-10, 1 is most severe/highest priority)
-- `location`: Location description
-- `coordinates`: Location coordinates (x, y)
+- `emergency_id`: Unique identifier for the emergency.
+- `type`: Emergency type (using `EmergencyType` enum).
+- `severity_level`: Severity (1-10, where 1 is the most severe/highest priority).
+- `location`: Location description.
+- `coordinates`: Location coordinates (x, y).
 
-The class implements comparison operators, allowing emergencies to be prioritized by severity and ID:
+The class implements comparison operators to prioritize emergencies by severity, then by ID:
 ```python
 def __lt__(self, other):
     if self.severity_level == other.severity_level:
@@ -55,235 +55,141 @@ def __lt__(self, other):
     return self.severity_level < other.severity_level
 ```
 
-### Priority Queue Data Structures
+### 4.2. Priority Queue Data Structures
+#### 4.2.1. Linked List Implementation (LinkedListPriorityQueue)
+- **Design**: Uses a sorted linked list, with the highest priority element at the head.
+- **Features**: Insertion requires traversal to find the correct position (O(n)), while deletion only requires removing the head (O(1)).
 
-#### Linked List Implementation (LinkedListPriorityQueue)
-- **Design**: Uses a sorted linked list, highest priority at the head
-- **Features**:
-  - Insertion requires traversal to find the correct position (O(n))
-  - Deletion only needs to remove the head (O(1))
-  - Supports search by ID (O(n))
+#### 4.2.2. Binary Tree Implementation (BinaryTreePriorityQueue)
+- **Design**: Uses a binary search tree where nodes are sorted by emergency priority.
+- **Features**: Offers average O(log n) time for insertions and deletions, and supports in-order traversal for a sorted list.
 
-#### Binary Tree Implementation (BinaryTreePriorityQueue)
-- **Design**: Uses a binary search tree, nodes sorted by emergency priority
-- **Features**:
-  - Average O(log n) for insert and delete
-  - In-order traversal for sorted list
-  - Fast search and priority change
+#### 4.2.3. Heap Implementation (HeapPriorityQueue)
+- **Design**: Uses a min-heap, ensuring the highest priority element is always at the root.
+- **Features**: Provides O(log n) time for insertions and deletions. An additional dictionary maps IDs to heap indices for fast O(1) lookups.
 
-#### Heap Implementation (HeapPriorityQueue)
-- **Design**: Uses a min-heap, highest priority at the top
-- **Features**:
-  - O(log n) for insert and delete
-  - Extra mapping for fast lookup (O(1))
-  - Efficient priority change
-
-### Complexity Analysis
-
-#### Time Complexity
-
-| Operation | Linked List | Binary Tree | Heap |
-|-----------|-------------|-------------|------|
+### 4.3. Complexity Analysis
+#### 4.3.1. Time Complexity
+| Operation | Linked List | Binary Tree | Heap     |
+|-----------|-------------|-------------|----------|
 | Enqueue   | O(n)        | O(log n)    | O(log n) |
 | Dequeue   | O(1)        | O(log n)    | O(log n) |
-| Search    | O(n)        | O(n)        | O(1)    |
+| Search    | O(n)        | O(n)        | O(1)     |
 
-#### Space Complexity
-
+#### 4.3.2. Space Complexity
 | Data Structure | Space Complexity |
 |----------------|------------------|
 | Linked List    | O(n)             |
 | Binary Tree    | O(n)             |
 | Heap           | O(n)             |
 
-### Complex Implementations
-- **Heap Priority Change**: When changing severity, the heap must be re-adjusted
-  ```python
-  def change_priority(self, emergency_id, new_severity):
-      index = self.id_to_index[emergency_id]
-      old_severity = self.heap[index].severity_level
-      self.heap[index].severity_level = new_severity
-      
-      if new_severity < old_severity:  # Priority increased
-          self._shift_up(index)
-      else:  # Priority decreased
-          self._shift_down(index)
-  ```
-- **Binary Tree Deletion**: For nodes with two children, find the in-order successor
-- **Linked List Priority Change**: Remove the node and re-insert at the correct position
+### 4.4. Design Rationale and Reflections on Optimization
+In developing this project, we gave special consideration to how we used our data structures and the overall efficiency of the system.
 
-## 4. Testing and Coverage
+#### 4.4.1. Our Current Design and Its Justification
+In the current implementation, we decided to maintain three separate instances of our priority queues (`LinkedList`, `BinarySearchTree`, and `Min-Heap`) simultaneously.
 
-### Testing Framework
-Uses Python's `unittest` framework for unit testing
+**Our Rationale**:
+This decision was made primarily for **comparative purposes**. We wanted to build a system where a user could easily switch between different views and observe, in real-time, how each data structure behaves with the exact same dataset.
 
-### Test Coverage
-| Test File | Coverage |
-|-----------|----------|
-| test_emergency.py | Emergency class initialization and comparison |
-| test_linked_list.py | Linked list queue basic operations and edge cases |
-| test_binary_tree.py | Binary tree queue operations and balance maintenance |
-| test_heap.py | Heap queue operations and performance tests |
-| test_data_loader.py | Data loading and queue initialization |
-| test_performance_analyzer.py | Performance analyzer functionality |
+#### 4.4.2. Reflections on Future Optimizations
+If we were to refactor this project for a real-world production environment, we would implement a more efficient design.
 
-### Test Coverage Rate
-Overall project test coverage is **89%**, ensuring core functionality reliability
+1.  **A Single Source of Truth**: Use a Python dictionary for `O(1)` average time complexity lookups by `emergency_id`.
+2.  **On-Demand Instantiation**: Dynamically create the active priority queue from the hash map only when needed.
+3.  **Rebuilding on Switch**: If the user switches views, dynamically build the new queue from the hash map.
 
-## 5. Project Structure and File Roles
+This optimized design would eliminate data redundancy and restore the efficiency of write operations.
 
-### Project Structure
+## 5. Testing and Coverage
+### 5.1. Testing Framework
+The project uses Python's built-in `unittest` framework for all unit tests.
+
+### 5.2. Test Coverage
+The test suite covers all core data structures and utility functions, including edge cases and basic operations. The overall project test coverage is **89%**, ensuring high reliability of the core functionalities.
+| Test File                    | Coverage                                      |
+|------------------------------|-----------------------------------------------|
+| `test_emergency.py`          | Emergency class initialization and comparison |
+| `test_linked_list.py`        | Linked list queue operations and edge cases   |
+| `test_binary_tree.py`        | Binary tree queue operations and structure    |
+| `test_heap.py`               | Heap queue operations and performance         |
+| `test_data_loader.py`        | Data loading and queue initialization         |
+| `test_performance_analyzer.py`| Performance analyzer functionality            |
+
+## 6. Project Structure
 ```
 emergency_system/
 ├── emergency_response/
-│   ├── __init__.py
 │   ├── data_structures/
-│   │   ├── __init__.py
 │   │   ├── emergency.py       # Emergency class
 │   │   ├── linked_list.py     # Linked list priority queue
 │   │   ├── binary_tree.py     # Binary tree priority queue
 │   │   └── heap.py            # Heap priority queue
 │   ├── gui/
-│   │   ├── __init__.py
 │   │   ├── interface.py       # Main GUI interface
 │   │   ├── knn_visualization.py # KNN visualization interface
 │   │   ├── statistics.py      # Statistics analysis interface
-│   │   ├── emergency_simulation.py # Emergency dispatch simulation interface
 │   │   └── main_app.py        # Main application interface
-│   ├── utils/
-│   │   ├── __init__.py
-│   │   ├── data_loader.py     # Data loader utility
-│   │   └── performance_analyzer.py  # Performance analyzer utility
+│   └── utils/
+│       ├── data_loader.py     # Data loader utility
+│       └── performance_analyzer.py # Performance analyzer utility
 ├── tests/
-│   ├── __init__.py
-│   ├── test_emergency.py      # Emergency class tests
-│   ├── test_linked_list.py    # Linked list priority queue tests
-│   ├── test_binary_tree.py    # Binary tree priority queue tests
-│   ├── test_heap.py           # Heap priority queue tests
-│   ├── test_data_loader.py    # Data loader utility tests
-│   └── test_performance_analyzer.py  # Performance analyzer utility tests
+│   ├── test_emergency.py
+│   ├── test_linked_list.py
+│   └── ... (tests for all data structures)
 ├── data/
 │   └── emergency_dataset.csv   # Emergency dataset
-├── pics/
-│   ├── binary_tree.png     # Binary tree flowchart
-│   ├── linked_list.png     # Linked list flowchart
-│   ├── heap.png            # Min-heap flowchart
-│   ├── binary_tree2.jpg    # Binary tree structure diagram
-│   ├── linked_list2.jpg    # Linked list structure diagram
-│   └── heap2.jpg           # Min-heap structure diagram
 └── main.py                     # Main program entry
-
 ```
 
-## 6. Project Features and Application Scenarios
+## 7. System Features and Use Cases
+### 7.1. Main Features
+1.  **Emergency Management**: Add, process, and search for emergencies using three different priority queue implementations.
+2.  **KNN Visualization**: Visualize emergencies and response units on a map and recommend the nearest units.
+3.  **Statistical Analysis**: Analyze emergency type and severity distributions.
+4.  **Performance Comparison**: Compare the operational performance of the three data structures.
+5.  **Emergency Dispatch Simulation**: Simulate handling large-scale emergencies to compare data structure performance.
 
-### Main Features
-1. **Emergency Management**:
-   - Add, process, and search emergencies
-   - Change emergency priority
-   - Three different data structure implementations for priority queues
+### 7.2. Application Scenarios
+1.  **City Emergency Centers**: Managing and dispatching resources for various incidents.
+2.  **Hospitals**: Optimizing patient intake and resource allocation.
+3.  **Fire Departments**: Handling alarms and dispatching units efficiently.
+4.  **Police Departments**: Managing and responding to emergency calls.
 
-2. **KNN Visualization**:
-   - Visualize emergencies and response units on a map
-   - Recommend nearest response units based on distance
+## 8. Challenges and Lessons Learned
+### 8.1. Main Challenges
+1.  **Data Structure Selection**: Balancing the performance trade-offs between the linked list, binary tree, and heap.
+2.  **Data Consistency**: Ensuring data remained synchronized across all three data structures during operations.
+3.  **Performance Optimization**: Addressing potential bottlenecks, such as tree balancing and efficient heap updates.
+4.  **GUI Performance**: Ensuring the GUI remained responsive when visualizing large datasets.
 
-3. **Statistical Analysis**:
-   - Analyze emergency type distribution
-   - Analyze severity distribution
-   - Data structure complexity analysis
+### 8.2. Lessons Learned
+1.  **Design for Edge Cases**: The importance of considering special conditions, such as identical priorities.
+2.  **Test-Driven Development**: High test coverage is crucial for ensuring code quality and reliability.
+3.  **Balance Performance and Maintainability**: Choose implementations appropriate for the specific use case.
+4.  **Modular Design**: A clear separation of concerns makes the project easier to extend and maintain.
 
-4. **Performance Comparison**:
-   - Compare operation performance of three data structures
-   - Visualize processing time for different data scales
+## 9. GUI Overview
+### 9.1. Interface Description
+The GUI, built with `tkinter`, includes:
+1.  **Main Interface**: A central hub with access to all major functions.
+2.  **Emergency Management Interface**: Allows direct interaction with the priority queues.
+3.  **KNN Visualization Interface**: Maps emergencies and recommends response units.
+4.  **Statistical Analysis Interface**: Displays emergency data distributions and complexity information.
+5.  **Performance Comparison Interface**: Compares the performance of the data structures with charts.
 
-5. **Emergency Dispatch Simulation**:
-   - Simulate large-scale emergency handling process
-   - Compare performance of different data structures in real scenarios
+### 9.2. Suggestions for Improvement
+1.  **Enhanced Visualization**: Implement heatmaps for emergency density or animations for response unit movements.
+2.  **Improved User Guidance**: Add an interactive tutorial or context-sensitive help tips.
 
-### Application Scenarios
-1. City emergency response center managing incidents
-2. Hospitals or emergency centers optimizing resource allocation
-3. Fire departments handling fire alarms and resource dispatch
-4. Police departments managing emergency police requests
-5. Urban planning departments analyzing emergency event distribution
+## 10. Daily Work Schedule
+- **Day 1**: Project planning and requirement gathering.
+- **Day 2**: Designing the system architecture and data structures.
+- **Day 3**: Implementing the main application and GUI.
+- **Day 4**: Developing the KNN algorithm and visualization.
+- **Day 5**: System testing and integration.
+- **Day 6**: Debugging and bug fixing.
+- **Day 7-9**: Finalizing the project, creating the presentation, and writing this report.
 
-## 7. Challenges and Lessons Learned
-
-### Main Challenges
-1. **Data Structure Selection**:
-   - Balancing performance among linked list, binary tree, and heap for priority queues
-   - Special handling for emergencies with the same ID
-
-2. **Data Consistency**:
-   - Keeping data synchronized across all three data structures
-   - Updating all queues when priority changes
-
-3. **Performance Optimization**:
-   - Tree balancing issues with large data in binary tree
-   - Heap operation optimization and fast lookup
-
-4. **GUI Performance**:
-   - Visualization performance with large data
-   - Dynamic drawing of tree structures
-
-### Lessons Learned
-1. **Consider edge cases in design**: Especially for same priority and ID
-2. **Importance of test-driven development**: High coverage ensures code quality
-3. **Balance between performance and maintainability**: Choose the right implementation for different scenarios
-4. **Modular design**: Clear module separation makes the project easy to extend and maintain
-5. **User experience first**: Complex backend logic needs intuitive frontend presentation
-
-## 8. GUI Interface Description and Improvement Suggestions
-
-### Interface Description
-The GUI is developed with `tkinter` and includes the following main interfaces:
-
-1. **Main Interface**:
-   - Simple card-style layout
-   - Five main function entries
-   - Bottom status bar displays queue info
-
-2. **Emergency Management Interface**:
-   - Left control panel to select queue type
-   - Center area displays queue content (list or tree)
-   - Right area shows emergency statistics charts
-   - Supports adding, processing, and searching emergencies
-
-3. **KNN Visualization Interface**:
-   - Map shows emergency and response unit locations
-   - Control panel to adjust K value and generate random units
-   - Result area displays recommended response units
-
-4. **Statistical Analysis Interface**:
-   - Pie chart for emergency type distribution
-   - Bar chart for severity distribution
-   - Shows time and space complexity info
-
-5. **Performance Comparison Interface**:
-   - Line chart compares performance of different data structures
-   - Table shows time complexity comparison
-   - Supports custom data size and operation type
-
-### Improvement Suggestions
-1. **Add more visualization elements**:
-   - Use heatmaps to show emergency density
-   - Add response unit movement animation
-
-2. **Enhance user guidance**:
-   - Add operation tutorial
-   - Implement context-sensitive tips system
-
-## Daily Work Schedule
-
-- **Day 1**: Project planning and requirement gathering. We discussed the project scope and divided tasks among team members.
-- **Day 2**: Designing the system architecture and data structures. We created diagrams to visualize the relationships.
-- **Day 3**: Implementing the main application and GUI. Each member focused on their assigned modules, ensuring a cohesive design.
-- **Day 4**: Developing the KNN algorithm and visualization. We iteratively tested the algorithm to ensure accuracy in distance calculations.
-- **Day 5**: Testing and debugging the system. We conducted unit tests on each module and integrated them into the main application.
-- **Day 6**: Debugging the system, find and fix bugs in the system.
-- **Day 7**: Almost finish the task, start making the PPT and the 'readme.md'.
-- **Day 8**: Continue making the PPT and the 'readme.md'.
-- **Day 9**: Finish the PPT and the and the 'readme.md'.
-
-## Conclusion
-This city emergency response management system provides an efficient emergency management solution by implementing three different priority queue data structures (linked list, binary tree, and heap). The system combines an intuitive visual interface and powerful analysis tools to help emergency response departments optimize resource allocation and improve response efficiency.
+## 11. Conclusion
+This City Emergency Response Management System successfully provides an effective solution for emergency management by implementing and comparing three distinct priority queue data structures. The system's combination of an intuitive visual interface and powerful analysis tools helps demonstrate key computer science concepts and offers a practical framework for optimizing emergency response.
