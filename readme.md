@@ -340,7 +340,7 @@ The GUI, built with `tkinter`, includes:
 3.  **KNN Visualization Interface**: Maps emergencies and recommends response units.
 4.  **Statistical Analysis Interface**: Displays emergency data distributions and complexity information.
 5.  **Performance Comparison Interface**: Compares the performance of the data structures with charts.
-6.  **Space Complexity Analysis**: Visualizes memory usage across different data sizes.
+6.  **Emergency Simulation Interface**: Simulates handling large batches of emergencies with different data structures, showing real-time processing speeds, queue states, and memory usage visualization across different data sizes.
 
 ### 6.2. Suggestions for Improvement
 1.  **Enhanced Visualization**: Implement heatmaps for emergency density or animations for response unit movements.
