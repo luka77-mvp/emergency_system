@@ -151,10 +151,6 @@ def dequeue(self):
     return item
 ```
 
-**Time Complexity Analysis:**
-- Enqueue: O(n) - Must traverse the list to find the correct position
-- Dequeue: O(1) - Simply remove the head node
-- Search: O(n) - May need to traverse the entire list
 
 #### 5.2.2. Binary Tree Implementation (BinaryTreePriorityQueue)
 Our binary search tree implementation uses a custom `TreeNode` class and maintains a tree where nodes are ordered by emergency priority.
@@ -214,10 +210,6 @@ def dequeue(self):
     return item
 ```
 
-**Time Complexity Analysis:**
-- Enqueue: O(log n) average, O(n) worst - Traverses one path from root to leaf
-- Dequeue: O(log n) average, O(n) worst - Must find the leftmost node
-- Search: O(log n) average, O(n) worst - Binary search property
 
 #### 5.2.3. Heap Implementation (HeapPriorityQueue)
 Our heap implementation uses a min-heap structure with an array representation, ensuring the highest priority element is always at the root.
@@ -296,11 +288,6 @@ def _shift_down(self, index):
             self._swap(index, smallest)
             self._shift_down(smallest)
 ```
-
-**Time Complexity Analysis:**
-- Enqueue: O(log n) - Single path from leaf to root
-- Dequeue: O(log n) - Single path from root to leaf
-- Search: O(1) - Direct lookup using id_to_index dictionary
 
 ### 5.3. Complexity Analysis
 #### 5.3.1. Time Complexity
