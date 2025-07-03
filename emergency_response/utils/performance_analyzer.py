@@ -2,6 +2,10 @@ import time
 import random
 import gc
 import matplotlib.pyplot as plt
+import sys
+import psutil
+import os
+from pympler import asizeof  # 导入pympler的asizeof模块
 
 from ..data_structures.emergency import Emergency, EmergencyType
 from ..data_structures.linked_list import LinkedListPriorityQueue
@@ -95,6 +99,71 @@ class PerformanceAnalyzer:
         
         self.results[operation_name] = results
 
+    def measure_space_complexity(self, data_sizes):
+        """使用pympler库测量不同数据结构的空间复杂度"""
+        results = {'Linked List': [], 'Binary Tree': [], 'Heap': []}
+        queue_classes = {
+            'Linked List': LinkedListPriorityQueue,
+            'Binary Tree': BinaryTreePriorityQueue,
+            'Heap': HeapPriorityQueue
+        }
+        
+        # 运行三次测试并取平均值以获得更稳定的结果
+        num_runs = 3
+        
+        for size in data_sizes:
+            if size <= 0:
+                for name in queue_classes: 
+                    results[name].append(0)
+                continue
+            
+            # 为每种队列类型创建内存使用记录
+            memory_usage = {'Linked List': [], 'Binary Tree': [], 'Heap': []}
+            
+            # 多次运行以获得更准确的结果
+            for run in range(num_runs):
+                # 为所有测试创建相同的紧急情况数据
+                emergencies = self.generate_random_emergencies(size)
+                
+                # 强制执行垃圾回收以确保测量的准确性
+                gc.collect()
+                
+                for name, queue_class in queue_classes.items():
+                    # 创建空队列
+                    empty_queue = queue_class()
+                    
+                    # 测量空队列的内存占用
+                    empty_size = asizeof.asizeof(empty_queue)
+                    
+                    # 创建并填充队列
+                    queue = queue_class()
+                    for e in emergencies:
+                        queue.enqueue(e)
+                    
+                    # 测量填充后的队列内存占用
+                    full_size = asizeof.asizeof(queue)
+                    
+                    # 计算差异（转换为KB）
+                    memory_used = (full_size - empty_size) / 1024
+                    
+                    # 确保测量值合理（不为负值）
+                    memory_used = max(0, memory_used)
+                    
+                    # 添加到当前运行的结果中
+                    memory_usage[name].append(memory_used)
+                    
+                    # 清理队列以释放内存
+                    del queue
+                    del empty_queue
+            
+            # 计算平均值并添加到最终结果
+            for name in queue_classes:
+                avg_memory = sum(memory_usage[name]) / len(memory_usage[name])
+                results[name].append(avg_memory)
+                print(f"Data Size: {size}, {name}: {avg_memory:.6f} KB")
+        
+        self.results['space'] = results
+
     def measure_enqueue_performance(self, data_sizes):
         """测量入队操作的性能。"""
         self._run_test_for_operation(data_sizes, "enqueue")
@@ -123,9 +192,17 @@ class PerformanceAnalyzer:
         for queue_type, times in results_for_op.items():
             ax.plot(data_sizes, times, marker='o', linestyle='-', label=queue_type)
 
-        ax.set_title(f'Performance Comparison for {operation.capitalize()} Operation')
+        # 设置图表标题和标签
+        title = f'Performance Comparison for {operation.capitalize()} Operation'
+        y_label = 'Execution Time (seconds)'
+        
+        if operation == 'space':
+            title = 'Space Complexity Comparison'
+            y_label = 'Memory Usage (KB)'
+            
+        ax.set_title(title)
         ax.set_xlabel('Number of Emergencies (Data Size)')
-        ax.set_ylabel('Execution Time (seconds)')
+        ax.set_ylabel(y_label)
         ax.legend()
         ax.grid(True)
         

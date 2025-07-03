@@ -14,6 +14,7 @@ from emergency_response.data_structures.emergency import Emergency, EmergencyTyp
 from emergency_response.data_structures.linked_list import LinkedListPriorityQueue
 from emergency_response.data_structures.binary_tree import BinaryTreePriorityQueue
 from emergency_response.data_structures.heap import HeapPriorityQueue
+from emergency_response.utils.performance_analyzer import PerformanceAnalyzer
 
 class EmergencySimulationGUI:
     """Emergency Dispatch Simulation Interface"""
@@ -33,6 +34,9 @@ class EmergencySimulationGUI:
         self.linked_list_queue = LinkedListPriorityQueue()
         self.binary_tree_queue = BinaryTreePriorityQueue()
         self.heap_queue = HeapPriorityQueue()
+        
+        # 创建性能分析器
+        self.performance_analyzer = PerformanceAnalyzer()
         
         # Simulation parameters
         self.emergency_count = tk.IntVar(value=1000)
@@ -105,6 +109,13 @@ class EmergencySimulationGUI:
         
         ttk.Button(
             button_frame, 
+            text="Run Space Test",
+            width=15,
+            command=self._run_space_test
+        ).pack(side=tk.LEFT, padx=5)
+        
+        ttk.Button(
+            button_frame, 
             text="Clear Results",
             width=15,
             command=self._clear_results
@@ -135,6 +146,15 @@ class EmergencySimulationGUI:
         self.throughput_figure = plt.Figure(figsize=(8, 5), dpi=100)
         self.throughput_canvas = FigureCanvasTkAgg(self.throughput_figure, master=throughput_tab)
         self.throughput_canvas.get_tk_widget().pack(fill=tk.BOTH, expand=True)
+        
+        # 空间复杂度比较选项卡
+        space_tab = ttk.Frame(tab_control, padding="10")
+        tab_control.add(space_tab, text="Space Complexity")
+        
+        # 创建空间复杂度比较图表
+        self.space_figure = plt.Figure(figsize=(8, 5), dpi=100)
+        self.space_canvas = FigureCanvasTkAgg(self.space_figure, master=space_tab)
+        self.space_canvas.get_tk_widget().pack(fill=tk.BOTH, expand=True)
         
         # Simulation details tab
         details_tab = ttk.Frame(tab_control, padding="10")
@@ -289,6 +309,76 @@ class EmergencySimulationGUI:
             messagebox.showerror("Error", f"Simulation failed: {str(e)}")
             self.status_var.set("Simulation failed")
     
+    def _run_space_test(self):
+        """运行空间复杂度测试"""
+        try:
+            # 获取参数
+            count = self.emergency_count.get()
+            
+            if count <= 0:
+                messagebox.showerror("Error", "Number of emergencies must be positive")
+                return
+            
+            # 更新状态
+            self.status_var.set("Running space complexity test...")
+            self.root.update()
+            
+            # 定义不同的数据大小
+            # 使用更多的数据点以获得更平滑的曲线
+            max_size = count
+            # 确保至少有8个数据点
+            data_sizes = []
+            if max_size <= 1000:
+                # 对于较小的数据集，使用均匀间隔
+                step = max(1, max_size // 8)
+                data_sizes = list(range(step, max_size + 1, step))
+            else:
+                # 对于较大的数据集，使用指数间隔，以便更好地观察趋势
+                sizes = [100, 200, 400, 600, 800, 1000]
+                sizes.extend([s for s in range(2000, max_size + 1, 1000) if s <= max_size])
+                if max_size not in sizes:
+                    sizes.append(max_size)
+                data_sizes = sizes
+            
+            # 执行空间复杂度测试
+            self.performance_analyzer.measure_space_complexity(data_sizes)
+            
+            # 绘制结果
+            self._plot_space_comparison(data_sizes)
+            
+            # 更新详细信息
+            self.details_text.delete(1.0, tk.END)
+            self.details_text.insert(tk.END, f"Space Complexity Test Results (Max size: {max_size} emergencies):\n\n")
+            
+            space_results = self.performance_analyzer.results.get('space', {})
+            
+            if 'Linked List' in space_results and space_results['Linked List']:
+                ll_space = space_results['Linked List'][-1]
+                self.details_text.insert(tk.END, f"Linked List Memory Usage: {ll_space:.6f} KB\n\n")
+            
+            if 'Binary Tree' in space_results and space_results['Binary Tree']:
+                bt_space = space_results['Binary Tree'][-1]
+                self.details_text.insert(tk.END, f"Binary Tree Memory Usage: {bt_space:.6f} KB\n\n")
+            
+            if 'Heap' in space_results and space_results['Heap']:
+                heap_space = space_results['Heap'][-1]
+                self.details_text.insert(tk.END, f"Heap Memory Usage: {heap_space:.6f} KB\n\n")
+            
+            # 理论复杂度分析
+            complexity_analysis = self.performance_analyzer.get_complexity_analysis()
+            space_complexity = complexity_analysis['space']
+            
+            self.details_text.insert(tk.END, "Theoretical Space Complexity:\n")
+            for i, structure in enumerate(space_complexity['Data Structure']):
+                self.details_text.insert(tk.END, f"  {structure}: {space_complexity['Complexity'][i]}\n")
+            
+            # 更新状态
+            self.status_var.set("Space complexity test completed")
+            
+        except Exception as e:
+            messagebox.showerror("Error", f"Space complexity test failed: {str(e)}")
+            self.status_var.set("Space complexity test failed")
+    
     def _simulate_queue(self, queue_name, queue, emergencies):
         """Simulate operations on a specific queue type"""
         # Clear the queue
@@ -397,6 +487,31 @@ class EmergencySimulationGUI:
         # Redraw the canvas
         self.throughput_canvas.draw()
     
+    def _plot_space_comparison(self, data_sizes):
+        """绘制空间复杂度比较图表"""
+        # 清除之前的图表
+        self.space_figure.clear()
+        
+        # 创建新图表
+        ax = self.space_figure.add_subplot(111)
+        
+        # 获取空间复杂度结果
+        space_results = self.performance_analyzer.results.get('space', {})
+        
+        # 绘制每种数据结构的空间使用情况
+        for queue_type, memory_usage in space_results.items():
+            ax.plot(data_sizes, memory_usage, marker='o', linestyle='-', label=queue_type)
+        
+        # 添加标签和标题
+        ax.set_xlabel('Number of Emergencies (Data Size)')
+        ax.set_ylabel('Memory Usage (KB)')
+        ax.set_title('Space Complexity Comparison')
+        ax.legend()
+        ax.grid(True)
+        
+        # 重绘画布
+        self.space_canvas.draw()
+    
     def _clear_results(self):
         """Clear simulation results"""
         # Clear results data
@@ -408,6 +523,9 @@ class EmergencySimulationGUI:
         
         self.throughput_figure.clear()
         self.throughput_canvas.draw()
+        
+        self.space_figure.clear()
+        self.space_canvas.draw()
         
         # Clear details text
         self.details_text.delete(1.0, tk.END)
