@@ -1,4 +1,4 @@
-# City Emergency Response Management System: Project Report
+89# City Emergency Response Management System: Project Report
 
 ## 1. Introduction
 This report details the design, implementation, and features of the City Emergency Response Management System. The project's core purpose is to provide an efficient and intuitive platform for managing urban emergencies by leveraging and comparing different priority queue data structures. Through this system, we demonstrate the practical application of various data structures, their performance characteristics, and their impact on real-world emergency management scenarios.
@@ -365,7 +365,7 @@ The GUI, built with `tkinter`, includes:
 The project uses Python's built-in `unittest` framework for all unit tests. We implemented comprehensive tests for all data structures and utility classes.
 
 ### 8.2. Test Coverage
-The test suite covers all core data structures and utility functions, including edge cases and basic operations. The overall project test coverage is **89%**, ensuring high reliability of the core functionalities.
+The test suite covers all core data structures and utility functions, including edge cases and basic operations. The overall project test coverage is **86%**, ensuring high reliability of the core functionalities.
 | Test File                    | Coverage                                      |
 |------------------------------|-----------------------------------------------|
 | `test_emergency.py`          | Emergency class initialization and comparison |
